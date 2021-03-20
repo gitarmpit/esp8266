@@ -1,0 +1,64 @@
+https://www.espressif.com/sites/default/files/documentation/Espressif_FAQ_EN.pdf
+
+On boot: wait for lowercase "ready"
+
+
+typical responses:
+OK
+ERROR
+
+==============
+AT+RESTORE  : factory restore 
+
+=========================
+disconnect:  
+AT+CWQAP
+response:
+OK
+WIFI DISCONNECT
+
+=======================
+AT+CWAUTOCONN=0 : do not connect automatically on poweron
+OK
+======================
+
+ATE0: echo off 
+ATE1: echo on 
+response: OK
+========================
+
+Connect to router: 
+AT+CWJAP="Nash_1","427215427215"
+AT+CWJAP_CUR="Nash_1","427215427215"
+wait for 3 strings:
+WIFI CONNECTED
+WIFI GOT IP
+OK
+========================
+AT+CWJAP_CUR?
+=============================
+Default IP addr in AP mode: 192.168.4.1
+
+========================
+Start in server mode: 
+AT+CIPSERVER
+OK
+=======================
+AT+CWMODE=3  AP+station
+AT+CWMODE_CUR=1/2/3    
+Start TCP connection: 
+AT+CIPSTART="TCP", "hostname", 80
+
+AT+CIPSEND=75
+
+
+TCP packet size is 1460 bytes and UDP packet size is 1472 bytes.
+
+
+AT+CIPSTART="UDP","us.pool.ntp.org",123
+AT+CIPSEND=48
+response:
+OK
+>
+
+

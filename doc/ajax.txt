@@ -1,0 +1,123 @@
+function OnClick() {
+let xhr = new XMLHttpRequest();
+
+// request state change event
+xhr.onreadystatechange = function() {
+
+  // request completed?
+  if (xhr.readyState !== 4) return;
+
+  if (xhr.status === 200) {
+    // request successful - show response
+    console.log(xhr.responseText);
+  }
+  else {
+    // request error
+    console.log('HTTP error', xhr.status, xhr.statusText);
+  }
+};
+
+xhr.timeout = 3000; // 3 seconds
+xhr.ontimeout = () => console.log('timeout', xhr.responseURL);
+
+xhr.open('GET', 'http://domain/service');
+xhr.send();
+}
+===========
+xhr.upload.onprogress = p => {
+  console.log( Math.round((p.loaded / p.total) * 100) + '%') ;
+}
+
+===========
+
+function loadDoc() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+     document.getElementById("demo").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "ajax_info.txt", true);
+  xhttp.send();
+}
+
+<!DOCTYPE html>
+<html>
+<body>
+
+<div id="demo">
+  <h2>Let AJAX change this text</h2>
+  <button type="button" onclick="loadDoc()">Change Content</button>
+</div>
+
+</body>
+</html>
+=========================================================
+<script type="text/javascript">
+function loadXMLDoc() {
+    var xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+           if (xmlhttp.status == 200) {
+               document.getElementById("myDiv").innerHTML = xmlhttp.responseText;
+           }
+           else if (xmlhttp.status == 400) {
+              alert('There was an error 400');
+           }
+           else {
+               alert('something else other than 200 was returned');
+           }
+        }
+    };
+
+    xmlhttp.open("GET", "ajax_info.txt", true);
+    xmlhttp.send();
+}
+</script>
+=========================================================
+ajax  plain java script no jquery
+
+http://youmightnotneedjquery.com
+ XMLHttpRequest 
+
+load, abort, progress and error events
+
+
+POST:
+var request = new XMLHttpRequest();
+request.open('POST', '/my/url', true);
+request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+request.send(data);
+
+======================================
+var request = new XMLHttpRequest();
+request.open('GET', '/my/url', true);
+
+request.onload = function() {
+  if (this.status >= 200 && this.status < 400) {
+    // Success!
+    var resp = this.response;
+  } else {
+    // We reached our target server, but it returned an error
+
+  }
+};
+
+request.onerror = function() {
+  // There was a connection error of some sort
+};
+
+request.send();
+=========================
+minimal jquery 
+Server header:
+Content-Encoding: gzip
+Content-Type: application/javascript
+
+Client: 
+Accept-Encoding: gzip
+==========================
+vanillaJS
+
+https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API

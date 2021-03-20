@@ -1,0 +1,4 @@
+On ARM: 
+#include <machine/endian.h>
+    __ntohl(1);
+    __bswap32(1);
