@@ -1,0 +1,21 @@
+[2021-03-25 22:27:45] [info] Start Program:
+Path:"C:\\TMP\\git\\esp8266\\src\\x64\\Release\\UnitTests.exe"
+Arguments:
+Working directory: "C:\\TMP\\git\\esp8266\\src\\UnitTests\\"
+Modules: Selected: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe Excluded: 
+Sources: Selected: C:\TMP\git\esp8266\src\common C:\TMP\git\esp8266\src\http_server C:\TMP\git\esp8266\src\UnitTests Excluded: UnitTests 
+Log Level: Normal
+Cover Children: 0
+Aggregate by file: 1
+Continue after C++ exception: 0
+Optimized build support: 0
+Export: binary C:\Users\admin\AppData\Local\Temp\syl3gcn0.scs 
+Input coverage: 
+Unified diff: 
+Excluded line regular expressions: 
+Substitute pdb source paths: 
+
+[2021-03-25 22:27:45] [info] Module: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe is selected because it matches selected pattern: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe
+[2021-03-25 22:27:48] [info] ----------------------------------------------------
+[2021-03-25 22:27:48] [info] Coverage binary generated in file: C:\Users\admin\AppData\Local\Temp\syl3gcn0.scs
+[2021-03-25 22:27:48] [info] ----------------------------------------------------

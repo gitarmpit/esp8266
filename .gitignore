@@ -1,0 +1,6 @@
+﻿.vs/
+Debug/
+Release/
+
+/src/UnitTests/.opencppcov/UnitTests/Release_x64.json
+*.user

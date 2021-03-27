@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SntpClient.cpp" />
+    <ClCompile Include="..\common\Esp8266.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ft232.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\memmem.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\PersistedSettings.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SntpClient.h" />
+    <ClInclude Include="..\common\Esp8266.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ft232.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\memmem.h">
+      <Filter>common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{b548fa93-0440-4545-99ca-84289d1e7bc5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

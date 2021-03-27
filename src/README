@@ -1,0 +1,5 @@
+Two modes: 
+
+1. http server  : initial setup or change of settings 
+
+2. sntp client  : normal operation, get time and update the clock

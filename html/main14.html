@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <style>
+  #title {
+    max-width: 300px; 
+    /*min-height: 200px;*/ 
+    border: 1px solid #335b71;
+    background-color: #88a2af;
+    border-radius: 10px 10px 0 0;
+    padding: 0.5em 1em ;
+    color: white;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+
+  #form {
+    display: grid;
+    grid-template-columns: auto;
+    grid-auto-rows: 1fr;
+    max-width: 300px; 
+    row-gap: 1em;
+    padding: 1em;
+
+    border: 1px solid #335b71;
+    border-top: none;
+    background-color: white;
+    border-radius: 0 0 10px 10px;
+    text-align: center;
+  }
+
+
+  button {
+      color: white;
+      text-decoration: none;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      text-align: center;
+      padding: 5px;
+      line-height: 30px;
+      display: inline-block;
+      position: relative;
+      border-radius: 20px;
+      background-image: linear-gradient(#335b71 45%, #03324c 55%);
+      box-shadow: 0 2px 2px #888888;
+      transition: color 0.3s, background-image 0.5s, ease-in-out;
+      outline: none;
+  }
+
+  select { 
+      color: #335b71;
+      text-decoration: none;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      text-align: center;
+      padding: 5px;
+      line-height: 30px;
+      border-radius: 20px;
+      box-shadow: 0 2px 2px #888888;
+      outline: none;
+  }
+
+  input {
+      color: #335b71;
+      text-decoration: none;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      padding: 0px;
+      border: none;
+      border-bottom: 1px solid #335b71;
+      background: transparent; 
+      height: 20px;
+  }
+
+
+  input:focus{
+    outline: none;
+  }
+
+  </style>
+
+</head>
+
+<body>
+<div id="title">
+  <div style="text-align: center">AP Configuration</div>
+</div>
+
+<div id="form">
+    <button type="button" class="form-button" id="populate" onClick="populateApList()">Populate AP list</button>
+    <select name="ssid" id="ssid">
+      <option value="ssid1">ssid1</option>
+      <option value="ssid2">ssid1</option>
+      <option value="ssid3">ssid1</option>
+    </select>
+    <input type="password" id="password" name="password">
+    <button type="button" class="form-button" id="submit" onClick="populateApList()">Submit</button>
+</div>
+
+</body>
+
+</html>
