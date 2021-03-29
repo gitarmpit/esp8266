@@ -76,6 +76,7 @@
     <ClCompile Include="..\common\ft232.cpp" />
     <ClCompile Include="..\common\memmem.cpp" />
     <ClCompile Include="..\common\PersistedSettings.cpp" />
+    <ClCompile Include="..\common\Timer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SntpClient.cpp" />
   </ItemGroup>
@@ -83,6 +84,7 @@
     <ClInclude Include="..\common\Esp8266.h" />
     <ClInclude Include="..\common\ft232.h" />
     <ClInclude Include="..\common\memmem.h" />
+    <ClInclude Include="..\common\Timer.h" />
     <ClInclude Include="SntpClient.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

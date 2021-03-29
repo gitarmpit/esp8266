@@ -67,8 +67,7 @@ public:
     bool ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId = -1);
     bool ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId = -1);
     bool SendData(const char* buf, const int size, int timeoutMs, int linkId = -1, bool waitAck=false);
-    bool ReceiveData(uint8_t* buf, int& size, int& linkId, int timeoutMs, bool waitForOK);
-    bool ParseIPD(int& linkId, int& bytesToRead);
+    bool ReceiveData(char* buf, int& size, int& linkId, int timeoutMs, bool waitForOK);
     bool WaitForClientConnection(int* linkId, int timeoutMs);
     bool CloseConnection(int linkId);
     bool SetTCPReceiveMode(bool isActive);
@@ -83,12 +82,13 @@ public:
 
     // Multiple connection mode
     bool SetMux(bool isMux);
-    char* GetListOfAps();
+    bool GetListOfAps(char* buf, int buflen);
 
     virtual Timer& CreateTimer();
 
 private:
 
+    bool ParseIPD(int& linkId, int& bytesToRead);
     bool SendChunk(const char* buf, const int size, int timeoutMs, int linkId, bool waitAck);
     void Log(const char* format, ...);
     virtual void _Log(const char* message);

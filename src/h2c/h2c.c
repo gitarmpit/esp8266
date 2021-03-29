@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
-#include <libgen.h>
-
-// HTML to C: stores html in a C variable as an escaped string
-
+//#include <libgen.h>
 
 static char* parse(char* buf_in, int len, const char* var_name) 
 {
@@ -66,7 +63,7 @@ int main(int argc, char**argv)
 
   if (var_name == NULL) 
   {
-    var_name = basename(fname);
+    var_name = "main_html"; //basename(fname);
     if (var_name == NULL) 
     {
         var_name = fname;

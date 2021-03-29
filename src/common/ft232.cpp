@@ -60,7 +60,7 @@ uint32_t Ft232::WaitRead(int timeoutMs)
     return rxBytes;
 }
 
-bool Ft232::Read(char* buf, uint32_t& bytesReceived, int timeoutMs)
+bool Ft232::Read(char* buf, int& bytesReceived, int timeoutMs)
 {
     bytesReceived = 0;
     bool rc = true;
@@ -76,6 +76,7 @@ bool Ft232::Read(char* buf, uint32_t& bytesReceived, int timeoutMs)
     return rc;
 }
 
+#if 0
 bool Ft232::Read(char* buf, uint32_t bytesToRead)
 {
     bool rc = true;
@@ -87,7 +88,7 @@ bool Ft232::Read(char* buf, uint32_t bytesToRead)
     }
     return rc;
 }
-
+#endif
 
 bool Ft232::SetTimeout(int timeoutMs)
 {

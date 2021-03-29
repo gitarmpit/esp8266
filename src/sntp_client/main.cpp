@@ -38,7 +38,7 @@ static void start_sntp()
     }
 }
 
-int main(int argc, char**argv)
+int main()
 {
     start_sntp();
 }

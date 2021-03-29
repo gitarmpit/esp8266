@@ -1,4 +1,4 @@
 @echo off 
 
 echo Running htc.bat
-..\..\html\htc.exe ..\..\html\main14.html > html.cpp
+..\..\html\h2c.exe ..\..\html\main9.html > html.cpp

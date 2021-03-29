@@ -4,3 +4,7 @@ Release/
 
 /src/UnitTests/.opencppcov/UnitTests/Release_x64.json
 *.user
+*.ilk
+*.obj
+*.pdb
+*.idb

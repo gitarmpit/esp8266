@@ -5,7 +5,7 @@
 #include <string.h>
 #include "ApSetup.h"
 
-#define MAIN_PAGE main14
+#define MAIN_PAGE main_html
 
 #define HTTP_DEBUG_MODE
 
@@ -94,7 +94,7 @@ bool HttpServer::ReadData(int timeoutSec)
     }
 #endif
 
-    if (!_esp->ReceiveData((uint8_t*)&_buf[_currentBufPos], size, _linkId, timeoutSec, false))
+    if (!_esp->ReceiveData(&_buf[_currentBufPos], size, _linkId, timeoutSec, false))
     {
         return false;
     }
@@ -116,7 +116,7 @@ bool HttpServer::ReadHeaders()
 
     while (_running)
     {
-        if (!ReadData(300000))
+        if (!ReadData(1000))
         {
             continue;
         }
@@ -183,13 +183,14 @@ void HttpServer::ProcessSetupAPConfing()
 void HttpServer::QueryAPConfig()
 {
     char body[32];
-    if (_flashSettings->GetSsid() != NULL)
+    char* ssid = _flashSettings->GetSsid();
+    if (ssid != NULL)
     {
-        strcpy (body, "OK");
+        strcpy (body, ssid);
     }
     else
     {
-        strcpy(body, "Not configured");
+        strcpy(body, "");
     }
 
     int len = (int)strlen((char*)body);
@@ -259,7 +260,7 @@ void HttpServer::ProcessRequest()
         else  if (strstr(_req.GetURI(), "/query_ap_config"))
         {
             //Ajar request to check if router has been configured 
-            //check saved settings in FLASH 
+            //check saved settings in FLASH, if ssid is set, return it 
             fprintf(stderr, "process query_ap_config: %d\n", cnt);
             QueryAPConfig();
         }

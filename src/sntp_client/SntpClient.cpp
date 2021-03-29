@@ -83,7 +83,7 @@ bool SntpClient::ReceivePacket()
     }
 
     int rxBytes;
-    bool rc = _esp->ReceiveData((uint8_t*)&_ntp_packet, rxBytes, linkId, _udpReceiveTimeout*1000, true);
+    bool rc = _esp->ReceiveData((char*)&_ntp_packet, rxBytes, linkId, _udpReceiveTimeout*1000, true);
 
     if (!rc || rxBytes != sizeof _ntp_packet)
     {

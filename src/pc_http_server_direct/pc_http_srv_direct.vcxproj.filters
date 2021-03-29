@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\common\memmem.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\PersistedSettings.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\http_server\ApSetup.cpp">
+      <Filter>HttpServer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\http_server\html.cpp">
+      <Filter>HttpServer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\http_server\HttpRequest.cpp">
+      <Filter>HttpServer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\http_server\HttpServer.cpp">
+      <Filter>HttpServer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\Timer.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pc_http_server\WinSockIo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\memmem.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\PersistedSettings.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\http_server\ApSetup.h">
+      <Filter>HttpServer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\http_server\HttpRequest.h">
+      <Filter>HttpServer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\http_server\HttpServer.h">
+      <Filter>HttpServer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\Timer.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pc_http_server\WinSockIo.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="common">
+      <UniqueIdentifier>{4f903b0d-0175-447b-a0c0-9aacc311dc6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HttpServer">
+      <UniqueIdentifier>{f5ee3a13-37d2-470b-acb2-fa124475e339}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

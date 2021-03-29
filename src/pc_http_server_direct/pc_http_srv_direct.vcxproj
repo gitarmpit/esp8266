@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8227B1C1-80FF-4142-A580-C2076F70005E}</ProjectGuid>
+    <ProjectGuid>{4D47271F-C237-4095-9D70-C4BB2D2164DA}</ProjectGuid>
     <RootNamespace>ft232</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -51,7 +51,8 @@
       <AdditionalDependencies>..\..\lib\ftd2xx.lib</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>htc.bat</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -71,25 +72,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\Esp8266.cpp" />
-    <ClCompile Include="..\common\ft232.cpp" />
     <ClCompile Include="..\common\memmem.cpp" />
     <ClCompile Include="..\common\PersistedSettings.cpp" />
     <ClCompile Include="..\common\Timer.cpp" />
-    <ClCompile Include="ApSetup.cpp" />
-    <ClCompile Include="HttpRequest.cpp" />
-    <ClCompile Include="HttpServer.cpp" />
+    <ClCompile Include="..\http_server\ApSetup.cpp" />
+    <ClCompile Include="..\http_server\html.cpp" />
+    <ClCompile Include="..\http_server\HttpRequest.cpp" />
+    <ClCompile Include="..\http_server\HttpServer.cpp" />
+    <ClCompile Include="..\pc_http_server\WinSockIo.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\Esp8266.h" />
-    <ClInclude Include="..\common\ft232.h" />
     <ClInclude Include="..\common\memmem.h" />
     <ClInclude Include="..\common\PersistedSettings.h" />
     <ClInclude Include="..\common\Timer.h" />
-    <ClInclude Include="ApSetup.h" />
-    <ClInclude Include="HttpRequest.h" />
-    <ClInclude Include="HttpServer.h" />
+    <ClInclude Include="..\http_server\ApSetup.h" />
+    <ClInclude Include="..\http_server\HttpRequest.h" />
+    <ClInclude Include="..\http_server\HttpServer.h" />
+    <ClInclude Include="..\pc_http_server\WinSockIo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -19,6 +19,8 @@ Esp8266::Esp8266(Serial* serial, bool autoConnect, bool echoOff)
 
 bool Esp8266::SendCommand(const char* buf, int size)
 {
+    _dataBytesRead = 0;
+    _databufPos = 0;
 #ifdef DEBUG_MODE 
     Log("SendCommand: <%s>\n", buf);
 #endif
@@ -138,6 +140,9 @@ bool Esp8266::StopServer()
 
 bool Esp8266::StartServer(int port, int maxConnections, int timeoutSec)
 {
+    UNUSED(maxConnections);
+    UNUSED(timeoutSec);
+
     /*
     // not supported in the old chip
     sprintf(_cmdbuf, "AT+CIPSERVERMAXCONN=%d\r\n", maxConnections);
@@ -331,7 +336,18 @@ bool Esp8266::ParseIPD(int& linkId, int& bytesToRead)
         char c = (char)_databuf[_databufPos++];
         if (c == ':')
         {
-            rc = true;
+            if (strlen(tmp1) == 0)
+            {
+                rc = false;
+            }
+            else if (nfields == 1 && strlen(tmp2) == 0)
+            {
+                rc = false;
+            }
+            else
+            {
+                rc = true;
+            }
             break;
         }
         else if (c == ',')
@@ -341,6 +357,11 @@ bool Esp8266::ParseIPD(int& linkId, int& bytesToRead)
             {
                 break;
             }
+        }
+        else if (!::isdigit(c))
+        {
+            rc = false;
+            break;
         }
         else if (nfields == 0)
         {
@@ -437,7 +458,7 @@ bool Esp8266::Expect(const char* expect, int timeoutMs, bool resetPointer)
     }   
 
     bool rc = false;
-    uint32_t bytesReceived = 0;
+    int bytesReceived = 0;
     //_databufPos = 0;
 
     Timer& timer = CreateTimer();
@@ -485,7 +506,7 @@ bool Esp8266::Expect(const char* expect, int timeoutMs, bool resetPointer)
     return rc;
 }
 
-bool Esp8266::ReceiveData(uint8_t* buf, int& bytesRead, int& linkId, int timeoutMs, bool waitForOK)
+bool Esp8266::ReceiveData(char* buf, int& bytesRead, int& linkId, int timeoutMs, bool waitForOK)
 {
     bytesRead = 0;
     
@@ -539,7 +560,7 @@ bool Esp8266::ReceiveData(uint8_t* buf, int& bytesRead, int& linkId, int timeout
         {
             break;
         }
-        uint32_t bytesReceived;
+        int bytesReceived;
 #ifdef DEBUG_MODE
         Log("Received data: attempt to read additional data\n");
 #endif
@@ -573,6 +594,7 @@ bool Esp8266::ReceiveData(uint8_t* buf, int& bytesRead, int& linkId, int timeout
     return waitForOK ? Expect("OK\r\n") : true;
 }
 
+#ifdef ESP8266_NEW
 bool Esp8266::SetTCPReceiveMode(bool isActive)
 {
     sprintf(_cmdbuf, "AT+CIPRECVMODE=%d\r\n", isActive ? 0 : 1);
@@ -615,6 +637,8 @@ bool Esp8266::GetSNTPTime(char* buf, int timeoutMs)
     }
     return rc;
 }
+#endif
+
 
 bool Esp8266::SetStationIpAddress(const char* ipAddress)
 {
@@ -661,24 +685,19 @@ void Esp8266::_Log(const char* message)
     fprintf(stderr, message);
 }
 
-
-
-char* Esp8266::GetListOfAps()
+bool Esp8266::GetListOfAps(char* buf, int buflen)
 {
     SendCommand("AT+CWLAP\r\n");
-    char* list = NULL;
+    bool rc = false;
     if (Expect(AT_OK))
     {
         int size = _databufPos - 6;
-        if (size > 0 && size < 2048)
+        if (size > 0 && size < buflen)
         {
-            list = (char*)malloc((size+1) * sizeof(char));
-            if (list)
-            {
-                strncpy(list, (char*)_databuf, size);
-                list[size] = '\0';
-            }
+            strncpy(buf, (char*)_databuf, size);
+            buf[size] = '\0';
+            rc = true;
         }
     }
-    return list;
+    return rc;
 }

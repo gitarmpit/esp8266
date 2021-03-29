@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <style>
+    :root {
+      --main-bg-color: #c1c2e6;
+      --botton-bg-color: #c1c2e6;
+      --botton-color: black;
+      --text-color: black;
+      --dialog-bg-color: #dadbed;
+      --form-bg-color: #dadbed;
+      --input-bg-color: white;
+    }
+
+    body {
+      background-color: var(--main-bg-color);
+    }
+
+    text {
+      color: var(--text-color);
+      white-space: nowrap;
+    }
+
+    h1 {
+      color: var(--text-color);
+    }
+
+    hr.rounded {
+      border-top: 4px solid black;
+      border-radius: 4px;
+    }
+
+    button {
+      color: var(--botton-color);
+      background-color: var(--botton-bg-color);
+      padding: 0.7em;
+      width: 100%;
+      border: 2px solid gray;
+      border-radius: 4px;
+    }
+
+    .overlay {
+      position: fixed;
+      display: none;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .dialog-div {
+      display: inline-grid;
+      grid-template-columns: auto auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      color: white;
+      transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
+      background-color: var(--dialog-bg-color);
+      border: 8px solid var(--main-bg-color);
+      /*margin: 2rem auto 0 auto;*/
+      margin: 2px;
+      /*min-width: 50%;*/
+      padding: 1em;
+      border-radius: 4px;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .button-grid {
+      grid-column: 1 / span 2;
+      width: 40%;
+      padding: 1em 0 0 60%;
+    }
+
+    .dialog-circle {
+      width: 30px;
+      height: 30px;
+      line-height: 28px;
+      border-radius: 50%;
+      border: 4px solid white;
+      color: white;
+      font-size: 20px;
+      font-family: verdana;
+      text-align: center;
+    }
+
+    #x {
+      color: white;
+      font-size: 20px;
+    }
+
+    .msg-text {
+      color: black;
+      padding: 0 0 0 10px;
+    }
+
+    #dialog-circle-ok {
+      background: #009900;
+    }
+
+    #dialog-circle-error {
+      background: #990000;
+    }
+
+    /*****************************/
+
+    #main-form {
+      display: grid;
+      padding: 1em 1em 1em 0;
+      background-color: var(--form-bg-color);
+      border: 2px solid black;
+      /*margin: 2rem auto 0 auto;*/
+      max-width: 400px;
+    }
+
+    #main-form input {
+      background: var(--input-bg-color);
+      border: 1px solid #9c9c9c;
+      border-radius: 4px;
+    }
+
+    #main-form button:hover {
+      border: 2px solid black;
+    }
+
+    label {
+      padding: 0.5em 0.5em 0.5em 0;
+    }
+
+    input {
+      padding: 0.7em;
+      margin-bottom: 0.5rem;
+    }
+
+    input:focus {
+      outline: 3px solid black;
+    }
+
+    @media (min-width: 300px) {
+      form {
+        grid-template-columns: 100px 1fr;
+        grid-gap: 16px;
+      }
+
+      label {
+        text-align: right;
+        grid-column: 1 / 2;
+      }
+
+      input,
+      button {
+        grid-column: 2 / 3;
+      }
+    }
+
+    .wrapper {
+      display: grid;
+    }
+
+    /*****************************/
+    .spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      font-size: 80px;
+      /*position: relative;*/
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+    }
+
+    .spinner div {
+      position: absolute;
+      left: 0.4629em;
+      bottom: 0;
+      width: 0.074em;
+      height: 0.2777em;
+      border-radius: 0.5em;
+      background-color: transparent;
+      -webkit-transform-origin: center -0.2222em;
+      -ms-transform-origin: center -0.2222em;
+      transform-origin: center -0.2222em;
+      -webkit-animation: spinner-fade 1s infinite linear;
+      animation: spinner-fade 1s infinite linear;
+    }
+
+    .spinner div:nth-child(1) {
+      -webkit-animation-delay: 0s;
+      animation-delay: 0s;
+      -webkit-transform: rotate(0deg);
+      -ms-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+
+    .spinner div:nth-child(2) {
+      -webkit-animation-delay: 0.083s;
+      animation-delay: 0.083s;
+      -webkit-transform: rotate(30deg);
+      -ms-transform: rotate(30deg);
+      transform: rotate(30deg);
+    }
+
+    .spinner div:nth-child(3) {
+      -webkit-animation-delay: 0.166s;
+      animation-delay: 0.166s;
+      -webkit-transform: rotate(60deg);
+      -ms-transform: rotate(60deg);
+      transform: rotate(60deg);
+    }
+
+    .spinner div:nth-child(4) {
+      -webkit-animation-delay: 0.249s;
+      animation-delay: 0.249s;
+      -webkit-transform: rotate(90deg);
+      -ms-transform: rotate(90deg);
+      transform: rotate(90deg);
+    }
+
+    .spinner div:nth-child(5) {
+      -webkit-animation-delay: 0.332s;
+      animation-delay: 0.332s;
+      -webkit-transform: rotate(120deg);
+      -ms-transform: rotate(120deg);
+      transform: rotate(120deg);
+    }
+
+    .spinner div:nth-child(6) {
+      -webkit-animation-delay: 0.415s;
+      animation-delay: 0.415s;
+      -webkit-transform: rotate(150deg);
+      -ms-transform: rotate(150deg);
+      transform: rotate(150deg);
+    }
+
+    .spinner div:nth-child(7) {
+      -webkit-animation-delay: 0.498s;
+      animation-delay: 0.498s;
+      -webkit-transform: rotate(180deg);
+      -ms-transform: rotate(180deg);
+      transform: rotate(180deg);
+    }
+
+    .spinner div:nth-child(8) {
+      -webkit-animation-delay: 0.581s;
+      animation-delay: 0.581s;
+      -webkit-transform: rotate(210deg);
+      -ms-transform: rotate(210deg);
+      transform: rotate(210deg);
+    }
+
+    .spinner div:nth-child(9) {
+      -webkit-animation-delay: 0.664s;
+      animation-delay: 0.664s;
+      -webkit-transform: rotate(240deg);
+      -ms-transform: rotate(240deg);
+      transform: rotate(240deg);
+    }
+
+    .spinner div:nth-child(10) {
+      -webkit-animation-delay: 0.747s;
+      animation-delay: 0.747s;
+      -webkit-transform: rotate(270deg);
+      -ms-transform: rotate(270deg);
+      transform: rotate(270deg);
+    }
+
+    .spinner div:nth-child(11) {
+      -webkit-animation-delay: 0.83s;
+      animation-delay: 0.83s;
+      -webkit-transform: rotate(300deg);
+      -ms-transform: rotate(300deg);
+      transform: rotate(300deg);
+    }
+
+    .spinner div:nth-child(12) {
+      -webkit-animation-delay: 0.913s;
+      animation-delay: 0.913s;
+      -webkit-transform: rotate(330deg);
+      -ms-transform: rotate(330deg);
+      transform: rotate(330deg);
+    }
+
+
+    @-webkit-keyframes spinner-fade {
+      0% {
+        /*background-color: #69717d;*/
+        background-color: white;
+      }
+
+      100% {
+        background-color: transparent;
+      }
+    }
+
+    @keyframes spinner-fade {
+      0% {
+        /*background-color: #69717d;*/
+        background-color: white;
+      }
+
+      100% {
+        background-color: transparent;
+      }
+    }
+  </style>
+
+  <script>
+    var retries;
+    var max_retries = 20;
+    var retry_timeout = 1000;
+
+    function check_input() {
+      if (document.getElementById("password").value === "") {
+        document.getElementById("submit").disabled = true;
+      }
+      else {
+        document.getElementById("submit").disabled = false;
+      }
+    }
+
+    function on_submit() {
+      document.getElementById("submit").disabled = true;
+      document.getElementById("ssid").disabled = true;
+      document.getElementById("password").disabled = true;
+      document.getElementById("overlay-spinner").style.display = "block";
+
+      let ssid = document.getElementById("ssid").value;
+      let password = document.getElementById("password").value;
+
+      document.getElementById("spinner").style.display = "block";
+
+      setAPCfg(ssid, password);
+    }
+
+    function enable_form(is_success, msg) {
+      document.getElementById("overlay-spinner").style.display = "none";
+      document.getElementById("ssid").disabled = false;
+      document.getElementById("password").disabled = false;
+
+      if (is_success) {
+        document.getElementById("ssid").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("submit").disabled = true;
+      }
+      else {
+        document.getElementById("submit").disabled = false;
+      }
+    }
+
+    function setAPCfg(ssid, password) {
+
+      retries = 0;
+      var xhttp = new XMLHttpRequest();
+      xhttp.timeout = 5000;
+
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            restartQuery();
+          }
+          else {
+            enable_form(false);
+          }
+        }
+      };
+
+      xhttp.open("POST", "/set_ap_config", true);
+      xhttp.send(ssid + ";" + password);
+    }
+
+    function restartQuery() {
+      if (retries++ > max_retries) {
+        enable_form(false);
+      }
+      else {
+        window.setTimeout(queryAPCfg, 3000);
+      }
+    }
+
+    function queryAPCfg() {
+
+      var xhttp = new XMLHttpRequest();
+      xhttp.timeout = retry_timeout;
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            let response = this.responseText;
+            enable_form(this.status == 200, response);
+          }
+          else {
+            restartQuery();
+          }
+        }
+      };
+
+      xhttp.open("GET", "/query_ap_config", true);
+      xhttp.send();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
+    }
+
+var cnt = 0;
+    function populateApList() {
+
+      if (cnt++ % 2 == 0)
+      {
+        document.getElementById("overlay-dialog-error").style.display = "block";
+      }
+      else
+      {
+        document.getElementById("overlay-dialog-ok").style.display = "block";
+      }
+
+      /*
+            var xhttp = new XMLHttpRequest();
+            xhttp.timeout = retry_timeout;
+            xhttp.onreadystatechange = function () {
+              if (this.readyState == 4) {
+                if (this.status == 200) {
+                  let response = this.responseText;
+                  enable_form(this.status == 200, response);
+                }
+                else {
+                  restartQuery();
+                }
+              }
+            };
+      
+            xhttp.open("GET", "/query_ap_config", true);
+            xhttp.send();
+            */
+    }
+
+
+  </script>
+
+</head>
+
+<body>
+
+
+  <div class="wrapper">
+    <div>
+      <text style="font-size: 2vw; font-weight: bold;">AP configuration</text>
+    </div>
+    <div>
+      <form id="main-form">
+        <button type="button" class="button" id="populate" onClick="populateApList()">Populate AP list</button>
+        <label for="ssid">SSID:</label>
+        <select name="ssid" id="ssid">
+          <option value="ssid1">ssid1</option>
+          <option value="ssid2">ssid1</option>
+          <option value="ssid3">ssid1</option>
+        </select>
+        <label for="password">Password:</label>
+        <input type="text" id="password" name="password" onkeyup="check_input()">
+        <button type="button" class="button" id="submit" onClick="on_submit()"  disabled>Submit</button>
+      </form>
+    </div>
+
+  </div>
+  <div>
+    <hr class="rounded">
+  </div>
+
+  <div class="overlay" id="overlay-spinner">
+    <div class='spinner' id="spinner">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
+  
+  <div class="overlay" id="overlay-dialog-ok">
+    <div class="dialog-div">
+        <div class='dialog-circle' id="dialog-circle-ok">
+          <div>✓</div>
+        </div>
+        <div><text class="msg-text">AP successfully configured.</text></div>
+        <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-ok')">OK</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay-dialog-error">
+    <div class="dialog-div">
+        <div class='dialog-circle' id="dialog-circle-error">
+          <div id="x">✕</div>
+        </div>
+        <div><text class="msg-text">Error configuring AP.</text></div>
+        <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-error')">OK</button></div>
+    </div>
+  </div>
+
+</body>
+
+</html>

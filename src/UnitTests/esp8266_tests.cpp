@@ -12,7 +12,6 @@ class MockSerial : public Serial
 public:
     MockSerial()
     {
-        ON_CALL(*this, Read(_, _)).WillByDefault(Return(false));
         ON_CALL(*this, Read(_, _, _)).WillByDefault(Return(false));
         ON_CALL(*this, Send).WillByDefault(Return(true));
         ON_CALL(*this, SetTimeout).WillByDefault(Return(true));
@@ -21,13 +20,12 @@ public:
     }
     MOCK_METHOD(bool, Initialize, (int baudRate), (override));
     MOCK_METHOD(uint32_t, WaitRead, (int timeoutMs), (override));
-    MOCK_METHOD(bool, Read, (char* buf, uint32_t& bytesReceived, int timeoutMs), (override));
-    MOCK_METHOD(bool, Read, (char* buf, uint32_t bytesToRead), (override));
+    MOCK_METHOD(bool, Read, (char* buf, int& bytesReceived, int timeoutMs), (override));
     MOCK_METHOD(bool, Send, (const char* buf, int size), (override));
     MOCK_METHOD(bool, SetTimeout, (int timeoutMs), (override));
 };
 
-class Esp8266_Tests : public ::testing::Test
+class Esp8266_Tests : public ::testing::TestWithParam<const char*>
 {
 public:
     virtual void SetUp()
@@ -46,6 +44,7 @@ public:
                 SetArgReferee<1>((uint32_t)strlen(buf)),
                 Return(result)));
     }
+
 protected:
     std::shared_ptr<MockSerial> _serial;
 private:
@@ -97,6 +96,14 @@ public:
     char* GetBuf()
     {
         return _databuf;
+    }
+    bool SendChunk(const char* buf, const int size, int timeoutMs, int linkId, bool waitAck)
+    {
+        return Esp8266::SendChunk(buf, size, timeoutMs, linkId, waitAck);
+    }
+    bool ParseIPD(int& linkId, int& bytesToRead)
+    {
+        return Esp8266::ParseIPD(linkId, bytesToRead);
     }
 
 private:
@@ -690,7 +697,6 @@ TEST_F(Esp8266_Tests, ExpectSpanMutlipleReads_Success)
     EXPECT_TRUE(strncpy(&buf[esp.GetDataBufPos()], "----", 4));
 }
 
-
 TEST_F(Esp8266_Tests, ExpectMany_Success)
 {
     const char* read1 = "-------1234****56x";
@@ -726,14 +732,242 @@ TEST_F(Esp8266_Tests, ExpectMany_Success)
     EXPECT_EQ(remainder, 1);
     EXPECT_TRUE(strncmp(&buf[esp.GetDataBufPos()], "x", 1) == 0);
 
-
     EXPECT_TRUE(esp.Expect("567", 1));
     EXPECT_EQ(esp.GetDataBytesRead(), strlen(read1) + strlen(read2) + strlen(read3));
     remainder = esp.GetDataBytesRead() - esp.GetDataBufPos();
     EXPECT_EQ(remainder, 4);
     buf = esp.GetBuf();
     EXPECT_TRUE(strncmp(&buf[esp.GetDataBufPos()], "....", 4) == 0);
-
-    
 }
 
+TEST_F(Esp8266_Tests, SendChunkNoLinkWaitAck_Success)
+{
+    const char* buf = "123";
+
+    {
+        InSequence seq;
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CIPSEND=3\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer(AT_OK"> ");
+        EXPECT_CALL(*_serial.get(), Send(buf, 3)).WillOnce(Return(true));
+        SetReadBuffer(SEND_OK);
+    }
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    EXPECT_TRUE(esp.SendChunk(buf, 3, 100, -1, true));
+}
+
+TEST_F(Esp8266_Tests, SendChunkNoWaitAck_Success)
+{
+    const char* buf = "123";
+
+    {
+        InSequence seq;
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CIPSEND=2,3\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer(AT_OK"> ");
+        EXPECT_CALL(*_serial.get(), Send(buf, 3)).WillOnce(Return(true));
+    }
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    EXPECT_TRUE(esp.SendChunk(buf, 3, 100, 2, false));
+}
+
+TEST_F(Esp8266_Tests, SendData_Success)
+{
+    const char* buf = "1234567";
+
+    {
+        InSequence seq;
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CIPSEND=2,3\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer(AT_OK"> ");
+        EXPECT_CALL(*_serial.get(), Send(buf, 3)).WillOnce(Return(true));
+
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CIPSEND=2,3\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer(AT_OK"> ");
+        EXPECT_CALL(*_serial.get(), Send(&buf[3], 3)).WillOnce(Return(true));
+
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CIPSEND=2,1\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer(AT_OK"> ");
+        EXPECT_CALL(*_serial.get(), Send(&buf[6], 1)).WillOnce(Return(true));
+    }
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    esp.SetChunkSize(3);
+    EXPECT_TRUE(esp.SendData(buf, 7, 100, 2, false));
+}
+
+
+TEST_F(Esp8266_Tests, IsConnectionClosed_Failure)
+{
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_FALSE(esp.IsConnectionClosed(0));
+}
+
+TEST_F(Esp8266_Tests, IsConnectionClosed_Success)
+{
+    SetReadBuffer("-----*--1,CLOSED\r\n--123--");
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    ASSERT_TRUE(esp.Expect("*"));
+    EXPECT_TRUE(esp.IsConnectionClosed(1));
+    char* buf = esp.GetBuf();
+    EXPECT_STREQ(&buf[esp.GetDataBufPos()], "--123--");
+}
+
+TEST_F(Esp8266_Tests, ParseIPD_Success)
+{
+    SetReadBuffer("---*22,36789:GET /");
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    ASSERT_TRUE(esp.Expect("*"));
+    int linkId, nBytes;
+    ASSERT_TRUE(esp.ParseIPD(linkId, nBytes));
+    EXPECT_EQ(linkId, 22);
+    EXPECT_EQ(nBytes, 36789);
+    char* buf = esp.GetBuf();
+    EXPECT_STREQ(&buf[esp.GetDataBufPos()], "GET /");
+}
+TEST_F(Esp8266_Tests, ParseIPD_NoLinkId_Success)
+{
+    SetReadBuffer("---*36789:GET /");
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    ASSERT_TRUE(esp.Expect("*"));
+    int linkId, nBytes;
+    ASSERT_TRUE(esp.ParseIPD(linkId, nBytes));
+    EXPECT_EQ(linkId, -1);
+    EXPECT_EQ(nBytes, 36789);
+    char* buf = esp.GetBuf();
+    EXPECT_STREQ(&buf[esp.GetDataBufPos()], "GET /");
+}
+
+
+INSTANTIATE_TEST_SUITE_P(
+    ParseID_Test,
+    Esp8266_Tests,
+    ::testing::Values(
+        "---*22,36789,,:GET /",
+        "---*2236789,:GET /",
+        "---*,2:GET /",
+        "---*2,:GET /",
+        "---*<,2:GET /",
+        "---*33,?:GET /",
+        "---*22,36789",
+        "---*22,36,789:"
+    ));
+
+TEST_P(Esp8266_Tests, ParseIPD_Fail)
+{
+    SetReadBuffer(GetParam());
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    ASSERT_TRUE(esp.Expect("*"));
+    int linkId, nBytes;
+    ASSERT_FALSE(esp.ParseIPD(linkId, nBytes));
+}
+
+TEST_F(Esp8266_Tests, ReadData_Success)
+{
+    std::string remainder = "--remainder--";
+    std::string read = "garbage---0,CONNECT\r\n+IPD,0,4:data" + remainder;
+    SetReadBuffer(read.c_str());
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    char buf[32] = { 0 };
+    int linkId, len;
+    EXPECT_TRUE(esp.ReceiveData(buf, len, linkId, 100, false));
+    EXPECT_EQ(linkId, 0);
+    EXPECT_EQ(len, 4);
+    EXPECT_STREQ((char*)buf, "data");
+    char* _buf = esp.GetBuf();
+    int pos = esp.GetDataBufPos();
+    int bytesRead = esp.GetDataBytesRead();
+    EXPECT_EQ(bytesRead - pos, remainder.size());
+    EXPECT_TRUE(strncmp(&_buf[pos], remainder.c_str(), remainder.size()) == 0);
+}
+
+TEST_F(Esp8266_Tests, ReadData_MultiReads_Success)
+{
+    const char* read1 = "garbage---0,CONNECT\r\n+IP";
+    const char* read2 = "D,0,";
+    const char* read3 = "4:da";
+    const char* read4 = "ta--remainder--";
+    {
+        InSequence seq;
+        SetReadBuffer(read1);
+        SetReadBuffer(read2);
+        SetReadBuffer(read3);
+        SetReadBuffer(read4);
+        SetReadBuffer(AT_OK);
+    }
+
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    char buf[32] = { 0 };
+    int linkId, len;
+    EXPECT_TRUE(esp.ReceiveData(buf, len, linkId, 100, true));
+    EXPECT_EQ(linkId, 0);
+    EXPECT_EQ(len, 4);
+    EXPECT_STREQ((char*)buf, "data");
+}
+
+TEST_F(Esp8266_Tests, GetListOfAps_Success)
+{   
+    {
+        InSequence seq;
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CWLAP\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer("aplist\r\nOK\r\n");
+    }
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    char buf[7];
+    EXPECT_TRUE(esp.GetListOfAps(buf, 7));
+    EXPECT_STREQ(buf, "aplist");
+}
+
+TEST_F(Esp8266_Tests, GetListOfAps_BufferTooSmall_Failure)
+{
+    {
+        InSequence seq;
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CWLAP\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer("aplist\r\nOK\r\n");
+    }
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    char buf[6];
+    EXPECT_FALSE(esp.GetListOfAps(buf, 6));
+}
+
+TEST_F(Esp8266_Tests, GetListOfAps_Parse_Success)
+{
+    std::string aplist = 
+R"(
++CWLAP:(0,"HP-Print-C4-Photosmart 7520",-85,"6c:c2:17:80:00:c4",1)
++CWLAP:(3,"ZyXEL8DD0A0",-78,"54:83:3a:8d:d0:a0",1)
++CWLAP:(3,"VETTE 94-2G",-81,"ac:ec:80:b9:b4:80",1)
++CWLAP:(3,"NTGR_VMB_1462061258",-96,"cc:40:d0:0e:17:c6",1)
++CWLAP:(3,"Casey House 24",-66,"34:6b:46:43:d3:ea",6)
++CWLAP:(3,"MySpectrumWiFi4C-2G",-91,"ec:a9:40:3d:c1:4d",6)
++CWLAP:(3,"MySpectrumWiFi88-2G",-93,"38:35:fb:7b:db:8e",6)
++CWLAP:(3,"HOMEAV",-91,"7c:d9:5c:94:ca:9a",6)
++CWLAP:(4,"Nash_1",-57,"d8:0d:17:bc:50:ce",9)
++CWLAP:(4,"Parikshak--Pool",-88,"d4:6a:91:3c:b9:2e",11)
++CWLAP:(3,"TPLINK24GHZ",-87,"84:16:f9:eb:65:db",11)
+)";
+    std::string read = aplist + AT_OK;
+    {
+        InSequence seq;
+        EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CWLAP\r\n"), 0)).WillOnce(Return(true));
+        SetReadBuffer(read.c_str());
+    }
+    MockEsp8266 esp(_serial.get(), false, false, 0);
+    EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
+    char buf[1024];
+    EXPECT_TRUE(esp.GetListOfAps(buf, 1024));
+    ASSERT_STREQ(buf, aplist.c_str());
+}
