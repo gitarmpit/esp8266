@@ -57,6 +57,15 @@
     <ClCompile Include="PersistedSettings_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HttpRequest_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpServer_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ApSetup_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\Esp8266.h">
@@ -82,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="..\common\Timer.h">
       <Filter>SUT</Filter>
+    </ClInclude>
+    <ClInclude Include="MockEsp8266.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -318,6 +318,31 @@
     var max_retries = 20;
     var retry_timeout = 1000;
 
+    window.onload = function(){
+      var xhttp = new XMLHttpRequest();
+      xhttp.timeout = 5000;
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          
+          if (this.status == 200) {
+            let response = this.responseText;
+            if (response === "") 
+            {
+                response = "Not configured";
+            }
+            else 
+            {
+                response = "Connected to " + response;
+            }
+            document.getElementById("status").innerHTML = response;
+          }
+        }
+      };
+
+      xhttp.open("GET", "/query_ap_config", true);
+
+    };
+
     function check_input() {
       if (document.getElementById("password").value === "") {
         document.getElementById("submit").disabled = true;
@@ -413,6 +438,7 @@
 var cnt = 0;
     function populateApList() {
 
+    /*
       if (cnt++ % 2 == 0)
       {
         document.getElementById("overlay-dialog-error").style.display = "block";
@@ -421,8 +447,10 @@ var cnt = 0;
       {
         document.getElementById("overlay-dialog-ok").style.display = "block";
       }
+   */
 
-      /*
+            document.getElementById("spinner").style.display = "block";
+
             var xhttp = new XMLHttpRequest();
             xhttp.timeout = retry_timeout;
             xhttp.onreadystatechange = function () {
@@ -430,16 +458,16 @@ var cnt = 0;
                 if (this.status == 200) {
                   let response = this.responseText;
                   enable_form(this.status == 200, response);
+                  document.getElementById("status").innerHTML = response;
                 }
                 else {
-                  restartQuery();
+                  // restartQuery();
                 }
               }
             };
       
             xhttp.open("GET", "/query_ap_config", true);
             xhttp.send();
-            */
     }
 
 
@@ -467,6 +495,7 @@ var cnt = 0;
         <input type="text" id="password" name="password" onkeyup="check_input()">
         <button type="button" class="button" id="submit" onClick="on_submit()"  disabled>Submit</button>
       </form>
+      Status: <label id="status">Not configured</label>
     </div>
 
   </div>

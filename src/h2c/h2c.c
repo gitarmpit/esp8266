@@ -88,6 +88,7 @@ int main(int argc, char**argv)
     }
     fclose (f);
     char* buf_out = parse (buffer, length, var_name);
+    printf ("//Generated from: %s\n\n", fname);
     printf ("%s\n", buf_out);
     free (buf_out);
   }

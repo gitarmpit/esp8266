@@ -262,6 +262,11 @@ bool Esp8266::PassthroughMode(bool on)
 
 bool Esp8266::SendData(const char* buf, const int size, int timeoutMs, int linkId, bool waitAck)
 {
+    if (size == 0)
+    {
+        return true;
+    }
+
     int sent = 0;
     int chunkSize = size;
 

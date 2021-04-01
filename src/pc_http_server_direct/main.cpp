@@ -4,14 +4,66 @@
 #include "../common/Esp8266.h"
 #include "../http_server/HttpServer.h"
 
-Esp8266::Esp8266(Serial* serial, bool autoConnect, bool echoOff)
+class Esp8266_Direct : public Esp8266_Base
+{
+public:
+#ifdef UNIT_TESTS
+    friend class HybridMockEsp8266;
+#endif
+
+    Esp8266_Direct(Serial* serial, bool autoConnect = false, bool echoOff = false);
+    virtual bool SendCommand(const char* buf, int len = 0);
+    virtual bool Expect(const char* expect, int timeoutMs = 1000, bool resetPointer = true);
+    virtual bool WaitBoot();
+    virtual bool EchoOff();
+    virtual void Reset();
+    virtual bool FactoryRestore() { return true;  }
+    virtual bool DisconnectFromAP();
+    virtual bool ConnectToAP(const char* ssid, const char* password, bool saveToFlash, int timeoutMs = 10000);
+    virtual bool SetMode(MODE mode);
+    virtual bool SetAutoConnect(bool on);
+    virtual bool IsConnectedToAP();
+    virtual bool SetStationIpAddress(const char* ipAddress);
+    virtual bool StartServer(int port, int maxConnections, int timeoutSec);
+    virtual bool StopServer();
+    virtual bool PassthroughMode(bool on);
+    virtual bool ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId = -1);
+    virtual bool ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId = -1);
+    virtual bool SendData(const char* buf, const int size, int timeoutMs, int linkId = -1, bool waitAck = false);
+    virtual bool ReceiveData(char* buf, int& size, int& linkId, int timeoutMs, bool waitForOK);
+    //virtual bool WaitForClientConnection(int* linkId, int timeoutMs);
+    virtual bool CloseConnection(int linkId);
+#ifdef ESP8266_NEW
+    virtual bool SetTCPReceiveMode(bool isActive);
+    virtual bool ReceiveTCPData(char* buf, int bytesToRead, int* bytesRead, int linkId = -1);
+    // Doesnt work with old firmware, need to update first 
+    // but AT+CIUPDATE doesn't work either
+    bool SetupSNTP(const char* server, int timeZone);
+    bool GetSNTPTime(char* buf, int timeoutMs);
+#endif
+    virtual bool IsConnectionClosed(int linkId);
+    virtual void SetChunkSize(int chunkSize);
+
+
+    // Multiple connection mode
+    virtual bool SetMux(bool isMux);
+    virtual bool GetListOfAps(char* buf, int buflen);
+
+    virtual Timer& CreateTimer();
+    virtual ~Esp8266_Direct() {}
+private:
+    Serial* _serial;
+
+};
+
+Esp8266_Direct::Esp8266_Direct(Serial* serial, bool autoConnect, bool echoOff)
 {
     _serial = serial;
     UNUSED(autoConnect);
     UNUSED(echoOff);
 }
 
-bool Esp8266::SendCommand(const char* buf, int size)
+bool Esp8266_Direct::SendCommand(const char* buf, int size)
 {
     UNUSED(buf);
     UNUSED(size);
@@ -19,19 +71,31 @@ bool Esp8266::SendCommand(const char* buf, int size)
     return true;
 }
 
-bool Esp8266::WaitBoot()
+bool Esp8266_Direct::WaitBoot()
 {
     return true;
 }
-void Esp8266::Reset()
+void Esp8266_Direct::Reset()
 {
 }
-bool Esp8266::EchoOff()
+bool Esp8266_Direct::EchoOff()
 {
     return true;
 }
 
-bool Esp8266::ConnectToAP(const char* ssid, const char* password, bool saveToFlash, int timeoutMs)
+void Esp8266_Direct::SetChunkSize(int chunkSize)
+{
+    UNUSED(chunkSize);
+}
+
+bool Esp8266_Direct::GetListOfAps(char* buf, int buflen)
+{
+    UNUSED(buf);
+    UNUSED(buflen);
+    return true;
+}
+
+bool Esp8266_Direct::ConnectToAP(const char* ssid, const char* password, bool saveToFlash, int timeoutMs)
 {
     UNUSED(ssid);
     UNUSED(password);
@@ -41,40 +105,40 @@ bool Esp8266::ConnectToAP(const char* ssid, const char* password, bool saveToFla
     return true;
 }
 
-bool Esp8266::DisconnectFromAP()
+bool Esp8266_Direct::DisconnectFromAP()
 {
     return true;
 }
 
-bool Esp8266::SetMode(MODE mode)
+bool Esp8266_Direct::SetMode(MODE mode)
 {
     UNUSED(mode);
     return true;
 }
 
-bool Esp8266::SetAutoConnect(bool on)
+bool Esp8266_Direct::SetAutoConnect(bool on)
 {
     UNUSED(on);
     return true;
 }
 
-bool Esp8266::IsConnectedToAP()
+bool Esp8266_Direct::IsConnectedToAP()
 {
     return true;
 }
 
-bool Esp8266::SetMux(bool isMux)
+bool Esp8266_Direct::SetMux(bool isMux)
 {
     UNUSED(isMux);
     return true;
 }
 
-bool Esp8266::StopServer()
+bool Esp8266_Direct::StopServer()
 {
     return true;
 }
 
-bool Esp8266::StartServer(int port, int maxConnections, int timeoutSec)
+bool Esp8266_Direct::StartServer(int port, int maxConnections, int timeoutSec)
 {
     UNUSED(port);
     UNUSED(maxConnections);
@@ -82,7 +146,7 @@ bool Esp8266::StartServer(int port, int maxConnections, int timeoutSec)
 
     return true;
 }
-bool Esp8266::ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId)
+bool Esp8266_Direct::ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId)
 {
     UNUSED(hostname);
     UNUSED(port);
@@ -91,7 +155,7 @@ bool Esp8266::ConnectTCP(const char* hostname, int port, int timeoutMs, int link
 
     return true;
 }
-bool Esp8266::ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId)
+bool Esp8266_Direct::ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId)
 {
     UNUSED(hostname);
     UNUSED(port);
@@ -99,31 +163,31 @@ bool Esp8266::ConnectUDP(const char* hostname, int port, int timeoutMs, int link
     UNUSED(linkId);
     return true;
 }
-bool Esp8266::CloseConnection(int linkId)
+bool Esp8266_Direct::CloseConnection(int linkId)
 {
     UNUSED(linkId);
     return true;
 }
-bool Esp8266::PassthroughMode(bool on)
+bool Esp8266_Direct::PassthroughMode(bool on)
 {
     UNUSED(on);
     return true;
 }
 
-bool Esp8266::IsConnectionClosed(int linkId)
+bool Esp8266_Direct::IsConnectionClosed(int linkId)
 {
     UNUSED(linkId);
     return false;
 }
 
-bool Esp8266::SetStationIpAddress(const char* ipAddress)
+bool Esp8266_Direct::SetStationIpAddress(const char* ipAddress)
 {
     UNUSED(ipAddress);
     return true;
 }
 
 // Never called
-bool Esp8266::Expect(const char* expect, int timeoutMs, bool resetPointer)
+bool Esp8266_Direct::Expect(const char* expect, int timeoutMs, bool resetPointer)
 {
     UNUSED(expect);
     UNUSED(timeoutMs);
@@ -131,23 +195,13 @@ bool Esp8266::Expect(const char* expect, int timeoutMs, bool resetPointer)
     return false;
 }
 
-Timer& Esp8266::CreateTimer()
+Timer& Esp8266_Direct::CreateTimer()
 {
     static Timer timer;
     return timer;
 }
 
-void Esp8266::Log(const char* format, ...)
-{
-    UNUSED(format);
-}
-
-void Esp8266::_Log(const char* str)
-{
-    UNUSED(str);
-}
-
-bool Esp8266::SendData(const char* buf, const int size, int timeoutMs, int linkId, bool waitAck)
+bool Esp8266_Direct::SendData(const char* buf, const int size, int timeoutMs, int linkId, bool waitAck)
 {
     UNUSED(waitAck);
     UNUSED(linkId);
@@ -155,7 +209,7 @@ bool Esp8266::SendData(const char* buf, const int size, int timeoutMs, int linkI
     return _serial->Send(buf, size);
 }
 
-bool Esp8266::ReceiveData(char* buf, int& bytesRead, int& linkId, int timeoutMs, bool waitForOK)
+bool Esp8266_Direct::ReceiveData(char* buf, int& bytesRead, int& linkId, int timeoutMs, bool waitForOK)
 {
     UNUSED(waitForOK);
     linkId = 0;
@@ -174,7 +228,7 @@ int main(int argc, char**argv)
         exit(1);
     }
 
-    Esp8266 esp(&ws, autoConnect, echoOff);
+    Esp8266_Direct esp(&ws, autoConnect, echoOff);
 
     PersistedSettings ps;
 

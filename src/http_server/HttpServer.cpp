@@ -9,7 +9,7 @@
 
 #define HTTP_DEBUG_MODE
 
-HttpServer::HttpServer(Esp8266* esp, PersistedSettings* settings, int maxConnections)
+HttpServer::HttpServer(Esp8266_Base* esp, PersistedSettings* settings, int maxConnections)
 {
    _esp = esp;
    _flashSettings = settings;
@@ -60,7 +60,7 @@ bool HttpServer::Init()
         printf("Connected to AP\n");
         if (!_esp->SetStationIpAddress("192.168.0.254"))
         {
-            printf("SetStaticIP error\n");
+            printf("SetStationIP error\n");
             return false;
         }
     }
@@ -116,7 +116,7 @@ bool HttpServer::ReadHeaders()
 
     while (_running)
     {
-        if (!ReadData(1000))
+        if (!ReadData(10000000))
         {
             continue;
         }
@@ -190,7 +190,7 @@ void HttpServer::QueryAPConfig()
     }
     else
     {
-        strcpy(body, "");
+        strcpy(body, "None");
     }
 
     int len = (int)strlen((char*)body);
@@ -253,13 +253,13 @@ void HttpServer::ProcessRequest()
         }
         else  if (!strcmp(_req.GetURI(), "/set_ap_config"))
         {
-            //Ajar request to configure SSID;password for router
+            //Ajax request to configure SSID;password for router
             fprintf(stderr, "process set_ap_config: %d\n", cnt);
             ProcessSetupAPConfing();
         }
         else  if (strstr(_req.GetURI(), "/query_ap_config"))
         {
-            //Ajar request to check if router has been configured 
+            //Ajax request to check if router has been configured 
             //check saved settings in FLASH, if ssid is set, return it 
             fprintf(stderr, "process query_ap_config: %d\n", cnt);
             QueryAPConfig();
@@ -291,6 +291,7 @@ void HttpServer::Run()
     if (!_initialized && !Init())
     {
         _running = false;
+        printf("HttpSever: initialize failed, exiting\n");
         return;
     }
     while (_running)

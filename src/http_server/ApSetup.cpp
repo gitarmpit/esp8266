@@ -4,13 +4,11 @@
 #include <stdio.h>
 
 
-ApSetup::ApSetup(Esp8266* esp, const char* body, HttpRequest* req)
+ApSetup::ApSetup(Esp8266_Base* esp, const char* body, HttpRequest* req)
 {
     _esp = esp;
     _body = body;
     _req = req;
-    memset(_ssid, 0, sizeof _ssid);
-    memset(_pass, 0, sizeof _pass);
 }
 
 bool ApSetup::ParsePostRequest(PersistedSettings* settings)
@@ -20,6 +18,11 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
         return false;
     }
 
+    char ssid[32];
+    char pass[32];
+    memset(ssid, 0, sizeof ssid);
+    memset(pass, 0, sizeof pass);
+
     // Parse "ssid;password" string received from Ajax call
     char* sptr = strchr((char*)_body, ';');
     if (sptr)
@@ -27,19 +30,21 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
         int spos = (int)(sptr - _body);
         if (spos <= 31)
         {
-            strncpy(_ssid, _body, spos);
-            _ssid[spos] = '\0';
+            strncpy(ssid, _body, spos);
+            ssid[spos] = '\0';
         }
         int plen =  _req->GetContentLength() - spos  - 1;
         if (plen > 0 && plen <= 31)
         {
-            strncpy(_pass, &_body[spos + 1], plen);
-            _pass[plen] = '\0';
+            strncpy(pass, &_body[spos + 1], plen);
+            pass[plen] = '\0';
         }
     }
 
+    bool rc;
+
     // SSID and password parsed, set station mode and connect to router
-    if (strlen(_ssid) && strlen(_pass))
+    if (strlen(ssid) && strlen(pass))
     {
         printf("Stopping server\n");
         
@@ -55,11 +60,11 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
             return false;
         }
 
-        // Verify that we can connec to AP then switch back to AP mode
+        // Verify that we can connect to AP then switch back to AP mode
         // and start server again
-        if (_esp->ConnectToAP(_ssid, _pass, false, 10000) && _esp->IsConnectedToAP())
+        if (_esp->ConnectToAP(ssid, pass, false, 10000) && _esp->IsConnectedToAP())
         {
-            settings->SetApSettings(_ssid, _pass);
+            settings->SetApSettings(ssid, pass);
             fprintf(stderr, "Disconnecting from AP\n");
             if (!_esp->DisconnectFromAP())
             {
@@ -70,8 +75,8 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
         {
             settings->SetApSettings(NULL, NULL);
             fprintf(stderr, "ConnectToAP error\n");
-            bool rc = _esp->Expect("FAIL", 10000);
-            fprintf(stderr, "FAIL: %d\n", rc);
+            bool expect_rc = _esp->Expect("FAIL", 10000);
+            fprintf(stderr, "FAIL: %d\n", expect_rc);
         }
 
         // Switch back to AP 
@@ -93,8 +98,12 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
         }
 
         fprintf(stderr, "Server ready\n");
-
+        rc = true;
+    }
+    else
+    {
+        rc = false;
     }
 
-    return true;
+    return rc;
 }

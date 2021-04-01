@@ -1,3 +1,5 @@
+//Generated from: ..\..\html\main9.html
+
 const char main_html[] = "\
 <!DOCTYPE html>\n\
 <html>\n\
@@ -319,6 +321,31 @@ const char main_html[] = "\
     var max_retries = 20;\n\
     var retry_timeout = 1000;\n\
 \n\
+    window.onload = function(){\n\
+      var xhttp = new XMLHttpRequest();\n\
+      xhttp.timeout = 5000;\n\
+      xhttp.onreadystatechange = function () {\n\
+        if (this.readyState == 4) {\n\
+          \n\
+          if (this.status == 200) {\n\
+            let response = this.responseText;\n\
+            if (response === \"\") \n\
+            {\n\
+                response = \"Not configured\";\n\
+            }\n\
+            else \n\
+            {\n\
+                response = \"Connected to \" + response;\n\
+            }\n\
+            document.getElementById(\"status\").innerHTML = response;\n\
+          }\n\
+        }\n\
+      };\n\
+\n\
+      xhttp.open(\"GET\", \"/query_ap_config\", true);\n\
+\n\
+    };\n\
+\n\
     function check_input() {\n\
       if (document.getElementById(\"password\").value === \"\") {\n\
         document.getElementById(\"submit\").disabled = true;\n\
@@ -414,6 +441,7 @@ const char main_html[] = "\
 var cnt = 0;\n\
     function populateApList() {\n\
 \n\
+    /*\n\
       if (cnt++ % 2 == 0)\n\
       {\n\
         document.getElementById(\"overlay-dialog-error\").style.display = \"block\";\n\
@@ -422,8 +450,10 @@ var cnt = 0;\n\
       {\n\
         document.getElementById(\"overlay-dialog-ok\").style.display = \"block\";\n\
       }\n\
+   */\n\
 \n\
-      /*\n\
+            document.getElementById(\"spinner\").style.display = \"block\";\n\
+\n\
             var xhttp = new XMLHttpRequest();\n\
             xhttp.timeout = retry_timeout;\n\
             xhttp.onreadystatechange = function () {\n\
@@ -431,16 +461,16 @@ var cnt = 0;\n\
                 if (this.status == 200) {\n\
                   let response = this.responseText;\n\
                   enable_form(this.status == 200, response);\n\
+                  document.getElementById(\"status\").innerHTML = response;\n\
                 }\n\
                 else {\n\
-                  restartQuery();\n\
+                  // restartQuery();\n\
                 }\n\
               }\n\
             };\n\
       \n\
             xhttp.open(\"GET\", \"/query_ap_config\", true);\n\
             xhttp.send();\n\
-            */\n\
     }\n\
 \n\
 \n\
@@ -468,6 +498,7 @@ var cnt = 0;\n\
         <input type=\"text\" id=\"password\" name=\"password\" onkeyup=\"check_input()\">\n\
         <button type=\"button\" class=\"button\" id=\"submit\" onClick=\"on_submit()\"  disabled>Submit</button>\n\
       </form>\n\
+      Status: <label id=\"status\">Not configured</label>\n\
     </div>\n\
 \n\
   </div>\n\

@@ -35,12 +35,9 @@
 
 #define DEBUG_MODE
 
-class Esp8266
+class Esp8266_Base
 {
 public:
-#ifdef UNIT_TESTS
-    friend class MockEsp8266;
-#endif
     enum class MODE
     {
         MODE_STATION = 1,
@@ -48,32 +45,75 @@ public:
         MODE_STATION_AP = 3
     };
 
+    virtual ~Esp8266_Base() {}
+    virtual bool SendCommand(const char* buf, int len = 0) = 0;
+    virtual bool Expect(const char* expect, int timeoutMs = 1000, bool resetPointer = true) = 0;
+    virtual bool WaitBoot() = 0;
+    virtual bool EchoOff() = 0;
+    virtual void Reset() = 0;
+    virtual bool FactoryRestore() = 0;
+    virtual bool DisconnectFromAP() = 0;
+    virtual bool ConnectToAP(const char* ssid, const char* password, bool saveToFlash, int timeoutMs = 10000) = 0;
+    virtual bool SetMode(MODE mode) = 0;
+    virtual bool SetAutoConnect(bool on) = 0;
+    virtual bool IsConnectedToAP() = 0;
+    virtual bool SetStationIpAddress(const char* ipAddress) = 0;
+    virtual bool StartServer(int port, int maxConnections, int timeoutSec) = 0;
+    virtual bool StopServer() = 0;
+    virtual bool PassthroughMode(bool on) = 0;
+    virtual bool ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId = -1) = 0;
+    virtual bool ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId = -1) = 0;
+    virtual bool SendData(const char* buf, const int size, int timeoutMs, int linkId = -1, bool waitAck = false) = 0;
+    virtual bool ReceiveData(char* buf, int& size, int& linkId, int timeoutMs, bool waitForOK) = 0;
+    // virtual bool WaitForClientConnection(int* linkId, int timeoutMs) = 0;
+    virtual bool CloseConnection(int linkId) = 0;
+#ifdef ESP8266_NEW
+    virtual bool SetTCPReceiveMode(bool isActive) = 0;
+    virtual bool ReceiveTCPData(char* buf, int bytesToRead, int* bytesRead, int linkId = -1) = 0;
+#endif
+    virtual bool IsConnectionClosed(int linkId) = 0;
+    virtual void SetChunkSize(int chunkSize) = 0;
+    virtual bool SetMux(bool isMux) = 0;
+    virtual bool GetListOfAps(char* buf, int buflen) = 0;
+
+    virtual Timer& CreateTimer() = 0;
+};
+
+class Esp8266 : public Esp8266_Base
+{
+public:
+#ifdef UNIT_TESTS
+    friend class HybridMockEsp8266;
+#endif
+
     Esp8266(Serial* serial, bool autoConnect = false, bool echoOff = false);
-    bool SendCommand(const char* buf, int len = 0);
-    bool Expect(const char* expect, int timeoutMs = 1000, bool resetPointer = true);
-    bool WaitBoot();
-    bool EchoOff();
-    void Reset();
-    bool FactoryRestore();
-    bool DisconnectFromAP();
-    bool ConnectToAP(const char* ssid, const char* password, bool saveToFlash, int timeoutMs = 10000);
-    bool SetMode(MODE mode);
-    bool SetAutoConnect(bool on);
-    bool IsConnectedToAP();
-    bool SetStationIpAddress(const char* ipAddress);
-    bool StartServer(int port, int maxConnections, int timeoutSec);
-    bool StopServer();
-    bool PassthroughMode(bool on);
-    bool ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId = -1);
-    bool ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId = -1);
-    bool SendData(const char* buf, const int size, int timeoutMs, int linkId = -1, bool waitAck=false);
-    bool ReceiveData(char* buf, int& size, int& linkId, int timeoutMs, bool waitForOK);
-    bool WaitForClientConnection(int* linkId, int timeoutMs);
-    bool CloseConnection(int linkId);
-    bool SetTCPReceiveMode(bool isActive);
-    bool ReceiveTCPData(char* buf, int bytesToRead, int* bytesRead, int linkId = -1);
-    bool IsConnectionClosed(int linkId);
-    void SetChunkSize(int chunkSize);
+    virtual bool SendCommand(const char* buf, int len = 0);
+    virtual bool Expect(const char* expect, int timeoutMs = 1000, bool resetPointer = true);
+    virtual bool WaitBoot();
+    virtual bool EchoOff();
+    virtual void Reset();
+    virtual bool FactoryRestore();
+    virtual bool DisconnectFromAP();
+    virtual bool ConnectToAP(const char* ssid, const char* password, bool saveToFlash, int timeoutMs = 10000);
+    virtual bool SetMode(MODE mode);
+    virtual bool SetAutoConnect(bool on);
+    virtual bool IsConnectedToAP();
+    virtual bool SetStationIpAddress(const char* ipAddress);
+    virtual bool StartServer(int port, int maxConnections, int timeoutSec);
+    virtual bool StopServer();
+    virtual bool PassthroughMode(bool on);
+    virtual bool ConnectTCP(const char* hostname, int port, int timeoutMs, int linkId = -1);
+    virtual bool ConnectUDP(const char* hostname, int port, int timeoutMs, int linkId = -1);
+    virtual bool SendData(const char* buf, const int size, int timeoutMs, int linkId = -1, bool waitAck=false);
+    virtual bool ReceiveData(char* buf, int& size, int& linkId, int timeoutMs, bool waitForOK);
+    //virtual bool WaitForClientConnection(int* linkId, int timeoutMs);
+    virtual bool CloseConnection(int linkId);
+#ifdef ESP8266_NEW
+    virtual bool SetTCPReceiveMode(bool isActive);
+    virtual bool ReceiveTCPData(char* buf, int bytesToRead, int* bytesRead, int linkId = -1);
+#endif
+    virtual bool IsConnectionClosed(int linkId);
+    virtual void SetChunkSize(int chunkSize);
 
     // Doesnt work with old firmware, need to update first 
     // but AT+CIUPDATE doesn't work either
@@ -81,11 +121,11 @@ public:
     bool GetSNTPTime(char *buf, int timeoutMs);
 
     // Multiple connection mode
-    bool SetMux(bool isMux);
-    bool GetListOfAps(char* buf, int buflen);
+    virtual bool SetMux(bool isMux);
+    virtual bool GetListOfAps(char* buf, int buflen);
 
     virtual Timer& CreateTimer();
-
+    virtual ~Esp8266() {}
 private:
 
     bool ParseIPD(int& linkId, int& bytesToRead);

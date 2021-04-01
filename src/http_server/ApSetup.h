@@ -6,13 +6,10 @@
 class ApSetup
 {
 public:
-    ApSetup(Esp8266* esp, const char* body, HttpRequest* req);
+    ApSetup(Esp8266_Base* esp, const char* body, HttpRequest* req);
     bool ParsePostRequest(PersistedSettings* settings);
 private:
-    Esp8266*     _esp;
+    Esp8266_Base*     _esp;
     HttpRequest* _req;
     const char*  _body;
-    char _ssid[32];
-    char _pass[32];
-
 };

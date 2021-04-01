@@ -29,5 +29,6 @@ int main(int argc, char**argv)
 
     HttpServer httpServer(&esp, &ps, 2);
     httpServer.Run();
+    ws.Stop();
 
 }

@@ -84,12 +84,19 @@ bool      WinSockIo::Initialize(int baudRate)
         rc = false;
     }
 
-    HANDLE thread = CreateThread(NULL, 0, WinSockIo::main_thread_handler, this, 0, NULL);
-    CloseHandle(thread);
+    _thread = CreateThread(NULL, 0, WinSockIo::main_thread_handler, this, 0, NULL);
 
     return rc;
 }
 
+void WinSockIo::Stop()
+{
+    printf("Waiting for WinSockIo to stop...\n");
+    stopping = true;
+    WaitForSingleObject(_thread, INFINITE);
+    CloseHandle(_thread);
+    printf("WinSockIo stopped\n");
+}
 
 void WinSockIo::Run()
 {
@@ -178,7 +185,7 @@ void WinSockIo::Run()
 
     }
 
-    printf("Terminating...");
+    printf("WinSockIo Terminating...");
 }
 
 void WinSockIo::processAccept(SOCKET accept_s)
@@ -229,6 +236,7 @@ void WinSockIo::processAccept(SOCKET accept_s)
 void WinSockIo::processClient(SOCKET client_s, int connectionId)
 {
     static int cnt;
+    std::lock_guard<std::mutex> lock_guard(_mtx);
 
     printf("\n===================\n");
     printf("%d\n", ++cnt);
@@ -238,10 +246,11 @@ void WinSockIo::processClient(SOCKET client_s, int connectionId)
     conn.socket = client_s;
     buf_t& raw_in = conn.buf; 
     printf("before read, buf len: %d\n", raw_in.length);
+
     bool rc = readFromClient(client_s, raw_in);
     if (rc)
     {
-        printf("Raw request len: %d bytes\n", raw_in.length);
+        printf("Raw request len: %d bytes, conn id: %d\n", raw_in.length, connectionId - 1);
     }
     else
     {
@@ -281,14 +290,14 @@ bool WinSockIo::readFromClient(SOCKET s, buf_t& msg)
             else
             {
                 printf("readFromClient: cli closed\n");
-                rc = false;
+                rc = true;
             }
             break;
         }
         else if (bytesRead == 0)
         {
             printf("readFromClient: 0, cli closed\n");
-            rc = false;
+            rc = true;
             break;
         }
 
@@ -304,6 +313,7 @@ bool WinSockIo::readFromClient(SOCKET s, buf_t& msg)
 
 bool WinSockIo::sendReply(SOCKET s, const buf_t& reply) const
 {
+    printf("send reply: sock: %d, msg: <%s>\n", s, reply.data);
     if (s == INVALID_SOCKET)
     {
         printf("sendReply: invalid socket\n");
@@ -370,12 +380,14 @@ bool  WinSockIo::Read(char* buf, int& bytesReceived, int timeoutMs)
     bytesReceived = 0;
     while (true)
     {
+        _mtx.lock();
         for (int i = 0; i < _max_conn; ++i)
         {
             if (_connections[i].buf.length > 0)
             {
                 memcpy(buf, _connections[i].buf.data, _connections[i].buf.length);
                 bytesReceived = _connections[i].buf.length;
+                fprintf(stderr, "WinSockIo:Read: got %d bytes from conn %d\n", bytesReceived, i);
                 free(_connections[i].buf.data);
                 _connections[i].buf.length = 0;
                 _connections[i].buf.data = NULL;
@@ -384,6 +396,7 @@ bool  WinSockIo::Read(char* buf, int& bytesReceived, int timeoutMs)
                 break;
             }
         }
+        _mtx.unlock();
         if (rc)
         {
             break;
@@ -470,11 +483,18 @@ bool WinSock_Esp8266::Send(const char* buf, int size)
             MemMem(buf, AT_CIPMUX, size, strlen(AT_CIPMUX)) != -1 ||
             MemMem(buf, AT_CIPSERVER, size, strlen(AT_CIPSERVER)) != -1 ||
             MemMem(buf, AT_CIPCLOSE, size, strlen(AT_CIPCLOSE)) != -1 ||
+            MemMem(buf, AT_CIPSTA_CUR, size, strlen(AT_CIPSTA_CUR)) != -1 ||
             MemMem(buf, AT_CWQAP, size, strlen(AT_CWQAP)) != -1
         )
     {
         strcpy(_response, AT_OK);
         _responseSize = strlen(AT_OK);
+    }
+    else if (MemMem(buf, AT_CWJAP_CUR_GET, size, strlen(AT_CWJAP_CUR_GET)) != -1)
+    {
+        strcpy(_response, CWJAP_CUR_PATTERN);
+        strcat(_response, AT_OK);
+        _responseSize = strlen(CWJAP_CUR_PATTERN) + strlen(AT_OK);
     }
     else if (
         MemMem(buf, AT_CWJAP_DEF, size, strlen(AT_CWJAP_DEF)) != -1||
@@ -483,13 +503,8 @@ bool WinSock_Esp8266::Send(const char* buf, int size)
     {
         strcpy(_response, WIFI_CONNECTED);
         strcat(_response, WIFI_GOT_IP);
-        _responseSize = strlen(WIFI_GOT_IP) + strlen(WIFI_CONNECTED);
-    }
-    else if (MemMem(buf, AT_CWJAP_CUR_GET, size, strlen(AT_CWJAP_CUR_GET)) != -1)
-    {
-        strcpy(_response, CWJAP_CUR_PATTERN);
         strcat(_response, AT_OK);
-        _responseSize = strlen(CWJAP_CUR_PATTERN) + strlen(AT_OK);
+        _responseSize = strlen(WIFI_GOT_IP) + strlen(WIFI_CONNECTED) + strlen(AT_OK);
     }
     return true;
 }

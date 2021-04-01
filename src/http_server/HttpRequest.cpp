@@ -33,8 +33,14 @@ bool HttpRequest::Parse(const char* buf, int buflen)
     }
 
     ParseContentLength();
-
-    return true;
+    if (_method != HTTP_METHOD::GET && _contentLength == 0)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool HttpRequest::ParseMethod()
@@ -51,7 +57,7 @@ bool HttpRequest::ParseMethod()
     }
     else if (!_strnicmp(_buf, "PUT", 3))
     {
-        _method = HTTP_METHOD::POST;
+        _method = HTTP_METHOD::PUT;
         _pos = 3;
     }
     else
@@ -89,6 +95,11 @@ bool HttpRequest::ParseUri()
         maxlen = sizeof(_uri) - 1;
     }
 
+    if (_buf[_pos] != '/')
+    {
+        return false;
+    }
+
     int i;
     for (i = 0; i < maxlen; ++i)
     {
@@ -101,7 +112,16 @@ bool HttpRequest::ParseUri()
     }
     _uri[i] = '\0';
 
-    return true;
+    const char* proto = "HTTP/1.1";
+    maxlen = _buflen - _pos;
+    if (maxlen >= (int)strlen(proto))
+    {
+        return (strncmp(&_buf[_pos], proto, strlen(proto)) == 0);
+    }
+    else
+    {
+        return false;
+    }
 }
 
 int HttpRequest::Find(const char* str)

@@ -4,6 +4,7 @@
 #include <Ws2tcpip.h>
 #include <stdio.h>
 #include <errno.h>
+#include <mutex>  
 
 #define _close_socket closesocket
 #define poll WSAPoll
@@ -49,6 +50,7 @@ public:
 
     virtual bool      Send(const char* buf, int size = 0);
     virtual bool      SetTimeout(int timeoutMs);
+    void Stop();
 
 private:
     bool _initialized;
@@ -58,6 +60,8 @@ private:
     struct pollfd _fds[MAX_CONN + 1];
     int    _nfds;
     int _lastReadConn;
+    HANDLE _thread;
+    std::mutex _mtx;
 
     connection_entry _connections[MAX_CONN];
 

@@ -74,6 +74,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -81,6 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -160,7 +162,10 @@
     <ClCompile Include="..\http_server\html.cpp" />
     <ClCompile Include="..\http_server\HttpRequest.cpp" />
     <ClCompile Include="..\http_server\HttpServer.cpp" />
+    <ClCompile Include="ApSetup_tests.cpp" />
     <ClCompile Include="esp8266_tests.cpp" />
+    <ClCompile Include="HttpRequest_tests.cpp" />
+    <ClCompile Include="HttpServer_tests.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mem_tests.cpp" />
     <ClCompile Include="PersistedSettings_tests.cpp" />
@@ -175,6 +180,7 @@
     <ClInclude Include="..\http_server\ApSetup.h" />
     <ClInclude Include="..\http_server\HttpRequest.h" />
     <ClInclude Include="..\http_server\HttpServer.h" />
+    <ClInclude Include="MockEsp8266.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

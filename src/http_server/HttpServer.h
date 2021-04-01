@@ -14,7 +14,7 @@
 class HttpServer
 {
 public:
-    HttpServer(Esp8266* esp, PersistedSettings* settings, int maxConnections);
+    HttpServer(Esp8266_Base* esp, PersistedSettings* settings, int maxConnections);
     void Run();
     bool Init();
     void Stop();
@@ -30,7 +30,7 @@ private:
     void Response404(const char* text = NULL);
     void ProcessSetupAPConfing();
     void QueryAPConfig();
-    Esp8266* _esp;
+    Esp8266_Base* _esp;
     int           _maxConnections;
     bool          _running;
     bool          _initialized;
