@@ -24,9 +24,9 @@ public:
     void Stop();
 
 private:
-    bool ReadData(int timeoutSec);
+    bool ReadData(int timeoutMs);
     void ProcessRequest();
-    bool ReadHeaders();
+    bool ReadHeaders(int timeoutMs);
     bool ReadBody();
     void Serve(const char* body, const char* contentType);
     void Response200(const char* contentType, int len);

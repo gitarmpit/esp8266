@@ -84,7 +84,7 @@ bool HttpServer::Init()
     return true;
 }
 
-bool HttpServer::ReadData(int timeoutSec)
+bool HttpServer::ReadData(int timeoutMs)
 {
     int size;
 #ifdef HTTP_DEBUG_MODE
@@ -94,7 +94,7 @@ bool HttpServer::ReadData(int timeoutSec)
     }
 #endif
 
-    if (!_esp->ReceiveData(&_buf[_currentBufPos], size, _linkId, timeoutSec, false))
+    if (!_esp->ReceiveData(&_buf[_currentBufPos], size, _linkId, timeoutMs, false))
     {
         return false;
     }
@@ -107,7 +107,7 @@ bool HttpServer::ReadData(int timeoutSec)
     return true;
 }
 
-bool HttpServer::ReadHeaders()
+bool HttpServer::ReadHeaders(int timeoutMs)
 {
     _currentBufPos = 0;
     _eofHeaderPos = 0;
@@ -115,25 +115,39 @@ bool HttpServer::ReadHeaders()
     memset(_buf, 0, sizeof _buf);
 
     _timer->Reset();
-
+    bool rc = true;
     while (_running)
     {
-        if (!ReadData(1000))
+        if (ReadData(timeoutMs))
         {
-            continue;
-        }
-        char* eofHeaderPtr = strstr(_buf, "\r\n\r\n");
-        if (eofHeaderPtr)
-        {
+            char* eofHeaderPtr = strstr(_buf, "\r\n\r\n");
+            if (eofHeaderPtr)
+            {
 #ifdef HTTP_DEBUG_MODE
-            fprintf(stderr, "Got eof headers\n");
+                fprintf(stderr, "Got eof headers\n");
 #endif
-            _eofHeaderPos = (int)(eofHeaderPtr - _buf + 4);
+                _eofHeaderPos = (int)(eofHeaderPtr - _buf + 4);
+                break;
+            }
+#ifdef HTTP_DEBUG_MODE
+            fprintf(stderr, "No eof headers, keep reading\n");
+#endif
+        }
+        else
+        {
+            rc = false;
             break;
         }
-#ifdef HTTP_DEBUG_MODE
-        fprintf(stderr, "No eof headers, keep reading\n");
-#endif
+
+        auto elapsedMs = _timer->ElapsedMs();
+        if (elapsedMs > timeoutMs)
+        {
+            fprintf(stderr, "Timeout reading headers\n");
+            rc = false;
+            break;
+        }
+
+        timeoutMs -= elapsedMs;
     }
 
     return true;
@@ -238,7 +252,11 @@ void HttpServer::Response404(const char* text)
 
 void HttpServer::ProcessRequest()
 {
-    ReadHeaders();
+    if (!ReadHeaders(1000))
+    {
+        return;
+    }
+
     if (_req.Parse(_buf, _currentBufPos))
     {
         fprintf(stderr, "headers read, content-length: %d\n", _req.GetContentLength());
