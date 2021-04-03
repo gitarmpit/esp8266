@@ -182,6 +182,7 @@
     <ClInclude Include="..\http_server\HttpServer.h" />
     <ClInclude Include="MockEsp8266.h" />
     <ClInclude Include="MockSerial.h" />
+    <ClInclude Include="MockTimer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

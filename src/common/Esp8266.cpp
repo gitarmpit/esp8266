@@ -5,9 +5,10 @@
 #include <windows.h>
 #include "memmem.h"
 
-Esp8266::Esp8266(Serial* serial, bool autoConnect, bool echoOff)
+Esp8266::Esp8266(Serial* serial, Timer* timer, bool autoConnect, bool echoOff)
 { 
     _serial = serial; 
+    _timer = timer;
     _dataBytesRead = 0;
     _databufPos = 0;
     _echoOff = echoOff;
@@ -464,10 +465,8 @@ bool Esp8266::Expect(const char* expect, int timeoutMs, bool resetPointer)
 
     bool rc = false;
     int bytesReceived = 0;
-    //_databufPos = 0;
 
-    Timer& timer = CreateTimer();
-    timer.Reset();
+    _timer->Reset();
 
     while (true)
     {
@@ -497,7 +496,7 @@ bool Esp8266::Expect(const char* expect, int timeoutMs, bool resetPointer)
             break;
         }
 
-        auto elapsedMs = timer.ElapsedMs();
+        auto elapsedMs = _timer->ElapsedMs();
         if ( elapsedMs > timeoutMs)
         {
 #ifdef DEBUG_MODE 
@@ -656,12 +655,6 @@ bool Esp8266::SetStationIpAddress(const char* ipAddress)
     {
         return false;
     }
-}
-
-Timer& Esp8266::CreateTimer()
-{
-    static Timer timer;
-    return timer;
 }
 
 void Esp8266::Log(const char* format, ...)

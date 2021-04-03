@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "WinSockIo.h"
 #include "../common/Esp8266.h"
+#include "../common/Timer.h"
 #include "../http_server/HttpServer.h"
 
 int main(int argc, char**argv)
@@ -15,7 +16,8 @@ int main(int argc, char**argv)
         exit(1);
     }
 
-    Esp8266 esp(&ws, autoConnect, echoOff);
+    Timer timer;
+    Esp8266 esp(&ws, &timer, autoConnect, echoOff);
 
     PersistedSettings ps;
 
@@ -27,7 +29,8 @@ int main(int argc, char**argv)
         ps.SetApSettings(ssid, pass);
     }
 
-    HttpServer httpServer(&esp, &ps, 2);
+    Timer timer2;
+    HttpServer httpServer(&esp, &ps, &timer2, 2);
     httpServer.Run();
     ws.Stop();
 

@@ -1,4 +1,4 @@
-[2021-03-31 20:49:30] [info] Start Program:
+[2021-04-02 22:30:52] [info] Start Program:
 Path:"C:\\TMP\\git\\esp8266\\src\\x64\\Release\\UnitTests.exe"
 Arguments:
 Working directory: "C:\\TMP\\git\\esp8266\\src\\UnitTests\\"
@@ -9,13 +9,13 @@ Cover Children: 0
 Aggregate by file: 1
 Continue after C++ exception: 0
 Optimized build support: 0
-Export: binary C:\Users\admin\AppData\Local\Temp\aivo3zvu.hxm 
+Export: binary C:\Users\admin\AppData\Local\Temp\0jkizeuz.aw2 
 Input coverage: 
 Unified diff: 
 Excluded line regular expressions: 
 Substitute pdb source paths: 
 
-[2021-03-31 20:49:32] [info] Module: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe is selected because it matches selected pattern: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe
-[2021-03-31 20:49:36] [info] ----------------------------------------------------
-[2021-03-31 20:49:36] [info] Coverage binary generated in file: C:\Users\admin\AppData\Local\Temp\aivo3zvu.hxm
-[2021-03-31 20:49:36] [info] ----------------------------------------------------
+[2021-04-02 22:30:52] [info] Module: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe is selected because it matches selected pattern: C:\TMP\git\esp8266\src\x64\Release\UnitTests.exe
+[2021-04-02 22:30:55] [info] ----------------------------------------------------
+[2021-04-02 22:30:55] [info] Coverage binary generated in file: C:\Users\admin\AppData\Local\Temp\0jkizeuz.aw2
+[2021-04-02 22:30:55] [info] ----------------------------------------------------

@@ -4,6 +4,7 @@
 #include "gmock/gmock.h"
 #include "MockEsp8266.h"
 #include "MockSerial.h"
+#include "MockTimer.h"
 
 class HttpServerTests : public ::testing::TestWithParam<const char*>
 {
@@ -27,6 +28,7 @@ public:
 
 protected:
     std::shared_ptr<MockEsp8266> _esp;
+    MockTimer _timer;
 private:
 };
 
@@ -34,7 +36,7 @@ TEST_F(HttpServerTests, Init_Success)
 {
     MockEsp8266 esp;
     PersistedSettings ps;
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
     EXPECT_CALL(esp, ConnectToAP).Times(0);
     EXPECT_TRUE(srv.Init());
 }
@@ -43,7 +45,7 @@ TEST_F(HttpServerTests, InitWaitBootError_Failure)
 {
     MockEsp8266 esp;
     PersistedSettings ps;
-    HttpServer srv (&esp, &ps, 3);
+    HttpServer srv (&esp, &ps, &_timer, 3);
     EXPECT_CALL(esp, WaitBoot()).WillOnce(Return(false));
     EXPECT_FALSE(srv.Run());
 }
@@ -52,7 +54,7 @@ TEST_F(HttpServerTests, InitSetModetError_Failure)
 {
     MockEsp8266 esp;
     PersistedSettings ps;
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
     EXPECT_CALL(esp, SetMode(_)).WillOnce(Return(false));
     EXPECT_FALSE(srv.Run());
 }
@@ -64,7 +66,7 @@ TEST_F(HttpServerTests, InitSsidSet_ConnectToAP_Success)
     const char* ssid = "ssid1";
     const char* pass = "pass1";
     ps.SetApSettings(ssid, pass);
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP(StrEq(ssid), StrEq(pass), _, _)).WillOnce(Return(true));
     EXPECT_CALL(esp, SetStationIpAddress).WillOnce(Return(true));
@@ -75,7 +77,7 @@ TEST_F(HttpServerTests, InitNoSsid_Success)
 {
     MockEsp8266 esp;
     PersistedSettings ps;
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP).Times(0);
     EXPECT_CALL(esp, SetStationIpAddress).Times(0);
@@ -91,7 +93,7 @@ TEST_F(HttpServerTests, InitSsidSet_ConnectToAP_Failure)
     const char* ssid = "ssid1";
     const char* pass = "pass1";
     ps.SetApSettings(ssid, pass);
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP).WillOnce(Return(false));
     EXPECT_CALL(esp, SetStationIpAddress).Times(0);
@@ -105,7 +107,7 @@ TEST_F(HttpServerTests, InitSsidSet_SetStationIP_Failure)
     const char* ssid = "ssid1";
     const char* pass = "pass1";
     ps.SetApSettings(ssid, pass);
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP).WillOnce(Return(true));
     EXPECT_CALL(esp, SetStationIpAddress).WillOnce(Return(false));
@@ -120,7 +122,7 @@ TEST_F(HttpServerTests, Init_SetMux_Failure)
     const char* ssid = "ssid1";
     const char* pass = "pass1";
     ps.SetApSettings(ssid, pass);
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP).WillOnce(Return(true));
     EXPECT_CALL(esp, SetStationIpAddress).WillOnce(Return(true));
@@ -136,7 +138,7 @@ TEST_F(HttpServerTests, Init_StartServer_Failure)
     const char* ssid = "ssid1";
     const char* pass = "pass1";
     ps.SetApSettings(ssid, pass);
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP).WillOnce(Return(true));
     EXPECT_CALL(esp, SetStationIpAddress).WillOnce(Return(true));
@@ -146,14 +148,14 @@ TEST_F(HttpServerTests, Init_StartServer_Failure)
     EXPECT_FALSE(srv.Run());
 }
 
-TEST_F(HttpServerTests, Init_StartServer_Failure)
+TEST_F(HttpServerTests, NextTest_Failure)
 {
     MockEsp8266 esp;
     PersistedSettings ps;
     const char* ssid = "ssid1";
     const char* pass = "pass1";
     ps.SetApSettings(ssid, pass);
-    HttpServer srv(&esp, &ps, 3);
+    HttpServer srv(&esp, &ps, &_timer, 3);
 
     EXPECT_CALL(esp, ConnectToAP).WillOnce(Return(true));
     EXPECT_CALL(esp, SetStationIpAddress).WillOnce(Return(true));

@@ -1,6 +1,8 @@
 #include "SntpClient.h"
 #include "../common/ft232.h"
 #include "../common/Esp8266.h"
+#include "../common/Timer.h"
+
 #include <stdio.h>
 
 static void start_sntp()
@@ -16,7 +18,8 @@ static void start_sntp()
 
     bool echoOff = true;
     bool autoConnect = false;
-    Esp8266 esp(&ft232, autoConnect, echoOff);
+    Timer timer;
+    Esp8266 esp(&ft232, &timer, autoConnect, echoOff);
 
     PersistedSettings settings;
     settings.SetApSettings("Nash_1", "427215427215");

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "../pc_http_server/WinSockIo.h"
 #include "../common/Esp8266.h"
+#include "../common/Timer.h"
 #include "../http_server/HttpServer.h"
 
 class Esp8266_Direct : public Esp8266_Base
@@ -240,7 +241,8 @@ int main(int argc, char**argv)
         ps.SetApSettings(ssid, pass);
     }
 
-    HttpServer httpServer(&esp, &ps, 2);
+    Timer timer;
+    HttpServer httpServer(&esp, &ps, &timer, 2);
     httpServer.Run();
 
 }

@@ -10,3 +10,4 @@ Release/
 *.idb
 /src/x64/_release.bak
 /src/h2c/h2c.exe
+/src/UnitTests/.opencppcov/UnitTests/Debug_x64.json

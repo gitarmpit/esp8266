@@ -98,5 +98,8 @@
     <ClInclude Include="MockSerial.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="MockTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

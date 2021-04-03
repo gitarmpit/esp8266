@@ -35,8 +35,7 @@ public:
     MOCK_METHOD(void, SetChunkSize, (int chunkSize), (override));
     MOCK_METHOD(bool, SetMux, (bool isMux), (override));
     MOCK_METHOD(bool, GetListOfAps, (char* buf, int buflen), (override));
-    MOCK_METHOD(Timer&, CreateTimer, (), (override));
-
+    
     MOCK_METHOD(bool, StopServer, (), (override));
     MOCK_METHOD(bool, SetMode, (Esp8266::MODE), (override));
     MOCK_METHOD(bool, ConnectToAP, (const char* ssid, const char* password, bool saveToFlash, int timeoutMs), (override));

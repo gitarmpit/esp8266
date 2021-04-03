@@ -5,6 +5,7 @@
 #include "../common/Esp8266.h"
 #include "../common/memmem.h"
 #include "MockSerial.h"
+#include "MockTimer.h"
 
 using namespace testing;
 
@@ -30,23 +31,9 @@ public:
 
 protected:
     std::shared_ptr<MockSerial> _serial;
-private:
-};
+    MockTimer _timer;
 
-class MockTimer : public Timer
-{
-public:
-    MockTimer() { _val = 1000000; }
-    void SetReturnValue(int val)
-    {
-        _val = val;
-    }
-    virtual int ElapsedMs()
-    {
-        return _val;
-    }
 private:
-    int _val;
 };
 
 
@@ -54,21 +41,15 @@ class HybridMockEsp8266 : public Esp8266
 {
 public:
 
-    HybridMockEsp8266(Serial* serial, bool autoReconnect, bool echoOff, int timerVal) : 
-        Esp8266(serial, autoReconnect, echoOff)
+    HybridMockEsp8266(Serial* serial, Timer* timer, bool autoReconnect, bool echoOff) : 
+        Esp8266(serial, timer, autoReconnect, echoOff)
     {
-        _timer.SetReturnValue(timerVal);
         ON_CALL(*this, _Log).WillByDefault(Return());
     }
     
     virtual ~HybridMockEsp8266() {}
 
     MOCK_METHOD(void, _Log, (const char*), (override));
-
-    virtual Timer& CreateTimer()
-    {
-        return _timer;
-    }
 
     int GetDataBytesRead()
     {
@@ -102,7 +83,7 @@ TEST_F(Esp8266_Tests, SetStationIpAddress_Success)
     ps.SetApSettings("ssid", "pass");
     bool echoOff = true;
     bool autoConnect = false;
-    Esp8266 esp(&serial, autoConnect, echoOff);
+    Esp8266 esp(&serial, &_timer, autoConnect, echoOff);
     std::string ipAddress = "127.0.0.1";
     std::string expected_str = AT_CIPSTA_CUR + std::string("=\"") + ipAddress + "\"\r\n";
     EXPECT_CALL(serial, Send(StrEq(expected_str.c_str()), 0)).WillOnce(Return(true));
@@ -115,7 +96,8 @@ TEST_F(Esp8266_Tests, EchoOff_Success)
     SetReadBuffer(AT_OK);
     std::string command = AT_ATE0;
     EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     bool rc = esp.EchoOff();
     EXPECT_TRUE(rc);
 }
@@ -130,7 +112,8 @@ TEST_F(Esp8266_Tests, WaitBoot_Success)
 
     std::string command = std::string(AT_CWAUTOCONN) + "=0\r\n";
     EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.WaitBoot();
     EXPECT_TRUE(rc);
@@ -140,7 +123,8 @@ TEST_F(Esp8266_Tests, Reset_Success)
 {
     std::string command = AT_RST;
     EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     esp.Reset();
 }
@@ -158,7 +142,8 @@ TEST_F(Esp8266_Tests, FactoryRestore_Success)
         SetReadBuffer(AT_OK);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.FactoryRestore();
     EXPECT_TRUE(rc);
@@ -174,7 +159,8 @@ TEST_F(Esp8266_Tests, DisconnectFromAP_Success)
         SetReadBuffer(AT_OK);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.DisconnectFromAP();
     EXPECT_TRUE(rc);
@@ -195,7 +181,8 @@ TEST_F(Esp8266_Tests, ConnectToAP_HasCreds_SaveToFlash_Success)
         SetReadBuffer(AT_OK);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectToAP(ssid.c_str(), password.c_str(), true, 100);
     EXPECT_TRUE(rc);
@@ -209,7 +196,8 @@ TEST_F(Esp8266_Tests, ConnectToAP_NoCreds_AutoConnect_Success)
         SetReadBuffer(WIFI_GOT_IP);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), true, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, true, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectToAP(NULL, NULL, true, 100);
     EXPECT_TRUE(rc);
@@ -217,7 +205,8 @@ TEST_F(Esp8266_Tests, ConnectToAP_NoCreds_AutoConnect_Success)
 
 TEST_F(Esp8266_Tests, ConnectToAP_NoCreds_NoAutoConnect_Failure)
 {
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectToAP(NULL, NULL, true, 100);
     EXPECT_FALSE(rc);
@@ -231,7 +220,9 @@ TEST_F(Esp8266_Tests, SetMode_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.SetMode(Esp8266::MODE::MODE_AP);
     EXPECT_TRUE(rc);
@@ -245,7 +236,9 @@ TEST_F(Esp8266_Tests, SetAutoconnect_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.SetAutoConnect(true);
     EXPECT_TRUE(rc);
@@ -260,7 +253,9 @@ TEST_F(Esp8266_Tests, IsConnectedToAP_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(read_buffer.c_str());
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.IsConnectedToAP();
     EXPECT_TRUE(rc);
@@ -275,7 +270,9 @@ TEST_F(Esp8266_Tests, IsConnectedToAP_Failure)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(read_buffer.c_str());
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.IsConnectedToAP();
     EXPECT_FALSE(rc);
@@ -289,7 +286,9 @@ TEST_F(Esp8266_Tests, SetMux_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.SetMux(true);
     EXPECT_TRUE(rc);
@@ -303,7 +302,9 @@ TEST_F(Esp8266_Tests, StopServer_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.StopServer();
     EXPECT_TRUE(rc);
@@ -318,7 +319,9 @@ TEST_F(Esp8266_Tests, StartServer_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.StartServer(port, 1, 0);
     EXPECT_TRUE(rc);
@@ -334,7 +337,9 @@ TEST_F(Esp8266_Tests, ConnectUdp_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectUDP(hostName.c_str(), 9999, 100, -1);
     EXPECT_TRUE(rc);
@@ -350,7 +355,9 @@ TEST_F(Esp8266_Tests, ConnectUdp2_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectUDP(hostName.c_str(), 9999, 100, 3);
     EXPECT_TRUE(rc);
@@ -366,7 +373,9 @@ TEST_F(Esp8266_Tests, ConnectTcp_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectTCP(hostName.c_str(), 9999, 100, -1);
     EXPECT_TRUE(rc);
@@ -382,7 +391,9 @@ TEST_F(Esp8266_Tests, ConnectTcp2_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.ConnectTCP(hostName.c_str(), 9999, 100, 3);
     EXPECT_TRUE(rc);
@@ -396,7 +407,8 @@ TEST_F(Esp8266_Tests, CloseConnection_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.CloseConnection(-1);
     EXPECT_TRUE(rc);
@@ -410,7 +422,8 @@ TEST_F(Esp8266_Tests, CloseConnection2_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.CloseConnection(3);
     EXPECT_TRUE(rc);
@@ -427,7 +440,8 @@ TEST_F(Esp8266_Tests, PassthruOn_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command2.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK"> ");
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.PassthroughMode(true);
     EXPECT_TRUE(rc);
@@ -442,7 +456,8 @@ TEST_F(Esp8266_Tests, PassthruOff_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq(command.c_str()), 0)).WillOnce(Return(true));
         SetReadBuffer(AT_OK);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     bool rc = esp.PassthroughMode(false);
     EXPECT_TRUE(rc);
@@ -454,7 +469,8 @@ TEST_F(Esp8266_Tests, Expect_3patterns_2reads_Success)
     InSequence seq;
     SetReadBuffer("----<1>---<2>");
     SetReadBuffer("---.");
-    HybridMockEsp8266 esp(_serial.get(), false, false, 1000000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_TRUE(esp.Expect("<1>", 1));
     EXPECT_TRUE(esp.Expect("<2>", 1));
     EXPECT_TRUE(esp.Expect(".", 1));
@@ -467,7 +483,8 @@ TEST_F(Esp8266_Tests, Expect_3patterns_4reads_Success)
     SetReadBuffer("---2");
     SetReadBuffer("---3");
     SetReadBuffer("---4");
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_TRUE(esp.Expect("1", 1));
     EXPECT_TRUE(esp.Expect("2", 1));
     EXPECT_TRUE(esp.Expect("4", 1));
@@ -480,7 +497,8 @@ TEST_F(Esp8266_Tests, Expect_TwoReads_Success)
         SetReadBuffer("---1");
         SetReadBuffer("---2");
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(StrEq("expecting: 1\n"))).Times(1);
     EXPECT_CALL(esp, _Log(StrEq("expecting: 2\n"))).Times(1);
@@ -496,7 +514,8 @@ TEST_F(Esp8266_Tests, Expect_Second_Fail)
         SetReadBuffer("", false);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 100);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(StrEq("expecting: 2\n"))).Times(1);
     EXPECT_CALL(esp, _Log(StrEq("expecting: 1\n"))).Times(1);
@@ -513,7 +532,8 @@ TEST_F(Esp8266_Tests, ExpectTimeout_Failure)
         SetReadBuffer(" ");
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 100);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(HasSubstr("timeout"))).Times(1);
     EXPECT_CALL(esp, _Log(StrEq("expecting: 2\n"))).Times(1);
@@ -533,7 +553,8 @@ TEST_F(Esp8266_Tests, ExpectInTwoReads_Success)
         SetReadBuffer(read2);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
 
     EXPECT_TRUE(esp.Expect("1234567", 1));
@@ -550,7 +571,8 @@ TEST_F(Esp8266_Tests, ExpectFoundInRemainder_Success)
         SetReadBuffer(read1);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(HasSubstr("remainder"))).Times(1);
 
@@ -569,7 +591,8 @@ TEST_F(Esp8266_Tests, ExpectFoundInRemainder2_Success)
         SetReadBuffer(read2);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(HasSubstr("remainder"))).Times(1);
 
@@ -595,7 +618,8 @@ TEST_F(Esp8266_Tests, ExpectMultipleRemainder_Success)
         SetReadBuffer(read4);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(HasSubstr("remainder"))).Times(1);
 
@@ -622,7 +646,8 @@ TEST_F(Esp8266_Tests, ExpectRemainderSamePatternAgain_Success)
         SetReadBuffer(read4);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(HasSubstr("remainder"))).Times(1);
 
@@ -650,7 +675,8 @@ TEST_F(Esp8266_Tests, ExpectRemainderMultiPattern2_Success)
         SetReadBuffer(read3);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_CALL(esp, _Log(HasSubstr("remainder"))).Times(1);
 
@@ -673,7 +699,8 @@ TEST_F(Esp8266_Tests, ExpectSpanMutlipleReads_Success)
         SetReadBuffer(read3);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
 
     EXPECT_TRUE(esp.Expect("2345678", 1));
@@ -697,7 +724,8 @@ TEST_F(Esp8266_Tests, ExpectMany_Success)
         SetReadBuffer(read3);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
 
     EXPECT_TRUE(esp.Expect(expect1, 1));
@@ -737,7 +765,8 @@ TEST_F(Esp8266_Tests, SendChunkNoLinkWaitAck_Success)
         SetReadBuffer(SEND_OK);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_TRUE(esp.SendChunk(buf, 3, 100, -1, true));
 }
@@ -753,7 +782,8 @@ TEST_F(Esp8266_Tests, SendChunkNoWaitAck_Success)
         EXPECT_CALL(*_serial.get(), Send(buf, 3)).WillOnce(Return(true));
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     EXPECT_TRUE(esp.SendChunk(buf, 3, 100, 2, false));
 }
@@ -777,7 +807,8 @@ TEST_F(Esp8266_Tests, SendData_Success)
         EXPECT_CALL(*_serial.get(), Send(&buf[6], 1)).WillOnce(Return(true));
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     esp.SetChunkSize(3);
     EXPECT_TRUE(esp.SendData(buf, 7, 100, 2, false));
@@ -788,7 +819,8 @@ TEST_F(Esp8266_Tests, SendDataZeroSize_Success)
 {
     const char* buf = "";
     EXPECT_CALL(*_serial.get(), Send).Times(0);
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     esp.SetChunkSize(3);
     EXPECT_TRUE(esp.SendData(buf, 0, 100, 2, false));
@@ -796,7 +828,8 @@ TEST_F(Esp8266_Tests, SendDataZeroSize_Success)
 
 TEST_F(Esp8266_Tests, IsConnectionClosed_Failure)
 {
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_FALSE(esp.IsConnectionClosed(0));
 }
 
@@ -804,7 +837,8 @@ TEST_F(Esp8266_Tests, IsConnectionClosed_Success)
 {
     SetReadBuffer("-----*--1,CLOSED\r\n--123--");
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     ASSERT_TRUE(esp.Expect("*"));
     EXPECT_TRUE(esp.IsConnectionClosed(1));
@@ -816,7 +850,8 @@ TEST_F(Esp8266_Tests, ParseIPD_Success)
 {
     SetReadBuffer("---*22,36789:GET /");
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     ASSERT_TRUE(esp.Expect("*"));
     int linkId, nBytes;
@@ -830,7 +865,8 @@ TEST_F(Esp8266_Tests, ParseIPD_NoLinkId_Success)
 {
     SetReadBuffer("---*36789:GET /");
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     ASSERT_TRUE(esp.Expect("*"));
     int linkId, nBytes;
@@ -859,7 +895,8 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(Esp8266_Tests, ParseIPD_Fail)
 {
     SetReadBuffer(GetParam());
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     ASSERT_TRUE(esp.Expect("*"));
     int linkId, nBytes;
@@ -871,7 +908,8 @@ TEST_F(Esp8266_Tests, ReadData_Success)
     std::string remainder = "--remainder--";
     std::string read = "garbage---0,CONNECT\r\n+IPD,0,4:data" + remainder;
     SetReadBuffer(read.c_str());
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[32] = { 0 };
     int linkId, len;
@@ -901,7 +939,8 @@ TEST_F(Esp8266_Tests, ReadData_MultiReads_Success)
         SetReadBuffer(AT_OK);
     }
 
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[32] = { 0 };
     int linkId, len;
@@ -914,7 +953,8 @@ TEST_F(Esp8266_Tests, ReadData_MultiReads_Success)
 TEST_F(Esp8266_Tests, ReadDataNoIPD_Fail)
 {
     SetReadBuffer("garbage---0,CONNECT\r\n+");
-    HybridMockEsp8266 esp(_serial.get(), false, false, 200);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[32] = { 0 };
     int linkId, len;
@@ -928,7 +968,8 @@ TEST_F(Esp8266_Tests, ReadDataNoColon_Fail)
         SetReadBuffer("garbage---0,CONNECT\r\n+IPD,0,4");
         SetReadBuffer("", false);
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 200);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[32] = { 0 };
     int linkId, len;
@@ -938,7 +979,9 @@ TEST_F(Esp8266_Tests, ReadDataNoColon_Fail)
 TEST_F(Esp8266_Tests, ReadDataIpdParseError_Fail)
 {
     SetReadBuffer("garbage---0,CONNECT\r\n+IPD,,4:");
-    HybridMockEsp8266 esp(_serial.get(), false, false, 200);
+    _timer.SetReturnValue(1000);
+    _timer.SetReturnValue(1000);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[32] = { 0 };
     int linkId, len;
@@ -953,7 +996,8 @@ TEST_F(Esp8266_Tests, GetListOfAps_Success)
         EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CWLAP\r\n"), 0)).WillOnce(Return(true));
         SetReadBuffer("aplist\r\nOK\r\n");
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[7];
     EXPECT_TRUE(esp.GetListOfAps(buf, 7));
@@ -967,7 +1011,8 @@ TEST_F(Esp8266_Tests, GetListOfAps_BufferTooSmall_Failure)
         EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CWLAP\r\n"), 0)).WillOnce(Return(true));
         SetReadBuffer("aplist\r\nOK\r\n");
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[6];
     EXPECT_FALSE(esp.GetListOfAps(buf, 6));
@@ -995,7 +1040,8 @@ R"(
         EXPECT_CALL(*_serial.get(), Send(StrEq("AT+CWLAP\r\n"), 0)).WillOnce(Return(true));
         SetReadBuffer(read.c_str());
     }
-    HybridMockEsp8266 esp(_serial.get(), false, false, 0);
+    _timer.SetReturnValue(0);
+    HybridMockEsp8266 esp(_serial.get(), &_timer, false, false);
     EXPECT_CALL(esp, _Log).WillRepeatedly(Return());
     char buf[1024];
     EXPECT_TRUE(esp.GetListOfAps(buf, 1024));

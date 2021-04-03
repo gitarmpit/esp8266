@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "HttpServer.h"
 #include "../common/PersistedSettings.h"
+#include "../common/Timer.h"
 
 static void http_server(int argc, char** argv)
 {
@@ -27,10 +28,12 @@ static void http_server(int argc, char** argv)
 
     bool echoOff = true;
     bool autoConnect = false;
-    Esp8266 esp(&ft232, autoConnect, echoOff);
+    Timer timer;
+    Esp8266 esp(&ft232, &timer, autoConnect, echoOff);
     //esp.SetAP_SSID_Password("Nash_1", "427215427215");
 
-    HttpServer httpServer(&esp, &ps, 2);
+    Timer timer2;
+    HttpServer httpServer(&esp, &ps, &timer2, 2);
     httpServer.Run();
 }
 

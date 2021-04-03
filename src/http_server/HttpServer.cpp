@@ -9,7 +9,7 @@
 
 #define HTTP_DEBUG_MODE
 
-HttpServer::HttpServer(Esp8266_Base* esp, PersistedSettings* settings, int maxConnections)
+HttpServer::HttpServer(Esp8266_Base* esp, PersistedSettings* settings, Timer* timer, int maxConnections)
 {
    _esp = esp;
    _flashSettings = settings;
@@ -19,6 +19,7 @@ HttpServer::HttpServer(Esp8266_Base* esp, PersistedSettings* settings, int maxCo
    _currentBufPos = 0;
    _eofHeaderPos = 0;
    _linkId = -1;
+   _timer = timer;
 }
 
 void HttpServer::Stop()
@@ -78,8 +79,7 @@ bool HttpServer::Init()
     }
 
     printf("Server ready\n");
-    
-
+ 
     _initialized = true;
     return true;
 }
@@ -114,9 +114,11 @@ bool HttpServer::ReadHeaders()
 
     memset(_buf, 0, sizeof _buf);
 
+    _timer->Reset();
+
     while (_running)
     {
-        if (!ReadData(10000000))
+        if (!ReadData(1000))
         {
             continue;
         }

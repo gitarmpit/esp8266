@@ -75,8 +75,6 @@ public:
     virtual void SetChunkSize(int chunkSize) = 0;
     virtual bool SetMux(bool isMux) = 0;
     virtual bool GetListOfAps(char* buf, int buflen) = 0;
-
-    virtual Timer& CreateTimer() = 0;
 };
 
 class Esp8266 : public Esp8266_Base
@@ -86,7 +84,7 @@ public:
     friend class HybridMockEsp8266;
 #endif
 
-    Esp8266(Serial* serial, bool autoConnect = false, bool echoOff = false);
+    Esp8266(Serial* serial, Timer* timer, bool autoConnect = false, bool echoOff = false);
     virtual bool SendCommand(const char* buf, int len = 0);
     virtual bool Expect(const char* expect, int timeoutMs = 1000, bool resetPointer = true);
     virtual bool WaitBoot();
@@ -124,7 +122,6 @@ public:
     virtual bool SetMux(bool isMux);
     virtual bool GetListOfAps(char* buf, int buflen);
 
-    virtual Timer& CreateTimer();
     virtual ~Esp8266() {}
 private:
 
@@ -141,4 +138,5 @@ private:
     bool    _autoConnect;
     bool    _echoOff;
     int     _chunkSize;
+    Timer* _timer;
 };

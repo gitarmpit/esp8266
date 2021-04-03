@@ -8,6 +8,7 @@
 #define SOCKET_TIMEOUT_SEC 180
 #include "HttpRequest.h"
 #include "../common/PersistedSettings.h"
+#include "../common/Timer.h"
 
 #define BUFFERSIZE 4096
 
@@ -17,7 +18,7 @@ class HttpServer
     friend class HttpServerTests;
 #endif
 public:
-    HttpServer(Esp8266_Base* esp, PersistedSettings* settings, int maxConnections);
+    HttpServer(Esp8266_Base* esp, PersistedSettings* settings, Timer* timer, int maxConnections);
     bool Run();
     bool Init();
     void Stop();
@@ -43,5 +44,5 @@ private:
     int           _linkId;
     HttpRequest   _req;
     PersistedSettings* _flashSettings;
-
+    Timer*       _timer;
 };
