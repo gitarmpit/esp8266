@@ -13,9 +13,12 @@
 
 class HttpServer
 {
+#ifdef UNIT_TESTS 
+    friend class HttpServerTests;
+#endif
 public:
     HttpServer(Esp8266_Base* esp, PersistedSettings* settings, int maxConnections);
-    void Run();
+    bool Run();
     bool Init();
     void Stop();
 

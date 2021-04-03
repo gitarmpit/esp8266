@@ -8,3 +8,5 @@ Release/
 *.obj
 *.pdb
 *.idb
+/src/x64/_release.bak
+/src/h2c/h2c.exe

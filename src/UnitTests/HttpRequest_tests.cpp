@@ -2,7 +2,34 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include <vector>
+#include "MockSerial.h"
 
+using namespace testing;
+
+class HttpServer_Tests : public ::testing::TestWithParam<const char*>
+{
+public:
+    virtual void SetUp()
+    {
+        _serial = std::make_shared<MockSerial>();
+    }
+    virtual void TearDown()
+    {
+        Mock::VerifyAndClearExpectations(&_serial);
+    }
+
+    void SetReadBuffer(const char* buf, bool result = true)
+    {
+        EXPECT_CALL(*_serial.get(), Read(_, _, _)).
+            WillOnce(DoAll(SetArrayArgument<0>(buf, buf + strlen(buf)),
+                SetArgReferee<1>((uint32_t)strlen(buf)),
+                Return(result)));
+    }
+
+protected:
+    std::shared_ptr<MockSerial> _serial;
+private:
+};
 TEST(HttpRequestTest, NoMethod_fail)
 {
     HttpRequest request;

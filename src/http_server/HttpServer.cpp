@@ -49,7 +49,7 @@ bool HttpServer::Init()
         return false;
     }
 
-    if (mode == Esp8266::MODE::MODE_STATION || mode == Esp8266::MODE::MODE_STATION_AP)
+    if (mode == Esp8266::MODE::MODE_STATION_AP)
     {
         if (!_esp->ConnectToAP(ssid, pass, false, 5000) || !_esp->IsConnectedToAP())
         {
@@ -284,7 +284,7 @@ void HttpServer::ProcessRequest()
     }
 }
 
-void HttpServer::Run()
+bool HttpServer::Run()
 {
     _running = true;
 
@@ -292,10 +292,11 @@ void HttpServer::Run()
     {
         _running = false;
         printf("HttpSever: initialize failed, exiting\n");
-        return;
+        return false;
     }
     while (_running)
     {
         ProcessRequest();
     }
+    return true;
 }

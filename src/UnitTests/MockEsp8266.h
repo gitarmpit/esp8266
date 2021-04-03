@@ -1,9 +1,21 @@
 #pragma once
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+
+using namespace testing;
 
 class MockEsp8266 : public Esp8266_Base
 {
 public:
-    MockEsp8266() {}
+    MockEsp8266() 
+    {
+        ON_CALL(*this, WaitBoot).WillByDefault(Return(true));
+        ON_CALL(*this, SetMode).WillByDefault(Return(true));
+        ON_CALL(*this, ConnectToAP).WillByDefault(Return(true));
+        ON_CALL(*this, IsConnectedToAP).WillByDefault(Return(true));
+        ON_CALL(*this, SetMux).WillByDefault(Return(true));
+        ON_CALL(*this, StartServer).WillByDefault(Return(true));
+    }
     virtual ~MockEsp8266() {}
     MOCK_METHOD(bool, SendCommand, (const char* buf, int len), (override));
 
