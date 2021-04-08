@@ -680,12 +680,12 @@ void Esp8266::Log(const char* format, ...)
 
 void Esp8266::_Log(const char* message)
 {
-    fprintf(stderr, message);
+    //fprintf(stderr, message);
 }
 
 bool Esp8266::GetListOfAps(char* buf, int buflen)
 {
-    SendCommand("AT+CWLAP\r\n");
+    SendCommand(AT_CWLAP);
     bool rc = false;
     if (Expect(AT_OK))
     {

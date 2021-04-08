@@ -80,7 +80,7 @@ bool      WinSockIo::Initialize(int baudRate)
     bool rc = true;
     int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
-        fprintf(stderr, "WSAStartup failed: %d\n", iResult);
+        printf("WSAStartup failed: %d\n", iResult);
         rc = false;
     }
 
@@ -313,7 +313,12 @@ bool WinSockIo::readFromClient(SOCKET s, buf_t& msg)
 
 bool WinSockIo::sendReply(SOCKET s, const buf_t& reply) const
 {
-    printf("send reply: sock: %d, msg: <%s>\n", s, reply.data);
+    printf("send reply: sock: %d, msg:\n", s);
+    for (int i = 0; i < reply.length; ++i)
+    {
+        printf("%c", reply.data[i]);
+    }
+    printf("\n");
     if (s == INVALID_SOCKET)
     {
         printf("sendReply: invalid socket\n");
@@ -387,7 +392,7 @@ bool  WinSockIo::Read(char* buf, int& bytesReceived, int timeoutMs)
             {
                 memcpy(buf, _connections[i].buf.data, _connections[i].buf.length);
                 bytesReceived = _connections[i].buf.length;
-                fprintf(stderr, "WinSockIo:Read: got %d bytes from conn %d\n", bytesReceived, i);
+                printf("WinSockIo:Read: got %d bytes from conn %d\n", bytesReceived, i);
                 free(_connections[i].buf.data);
                 _connections[i].buf.length = 0;
                 _connections[i].buf.data = NULL;
@@ -416,7 +421,7 @@ bool WinSockIo::Send(const char* buf, int size)
     buf_t msg;
     msg.data = (char*)buf;
     msg.length = size;
-    fprintf(stderr, "sending reply on conn: %d\n", _lastReadConn);
+    printf("sending reply on conn: %d\n", _lastReadConn);
     return sendReply(cli_s, msg);
 }
 bool      WinSockIo::SetTimeout(int timeoutMs)
@@ -506,5 +511,27 @@ bool WinSock_Esp8266::Send(const char* buf, int size)
         strcat(_response, AT_OK);
         _responseSize = strlen(WIFI_GOT_IP) + strlen(WIFI_CONNECTED) + strlen(AT_OK);
     }
+    else if (
+        MemMem(buf, AT_CWLAP, size, strlen(AT_CWLAP)) != -1)
+    {
+        const char* aplist =
+            R"(
++CWLAP:(0,"HP-Print-C4-Photosmart 7520",-85,"6c:c2:17:80:00:c4",1)
++CWLAP:(3,"ZyXEL8DD0A0",-78,"54:83:3a:8d:d0:a0",1)
++CWLAP:(3,"VETTE 94-2G",-81,"ac:ec:80:b9:b4:80",1)
++CWLAP:(3,"NTGR_VMB_1462061258",-96,"cc:40:d0:0e:17:c6",1)
++CWLAP:(3,"Casey House 24",-66,"34:6b:46:43:d3:ea",6)
++CWLAP:(3,"MySpectrumWiFi4C-2G",-91,"ec:a9:40:3d:c1:4d",6)
++CWLAP:(3,"MySpectrumWiFi88-2G",-93,"38:35:fb:7b:db:8e",6)
++CWLAP:(3,"HOMEAV",-91,"7c:d9:5c:94:ca:9a",6)
++CWLAP:(4,"Nash_1",-57,"d8:0d:17:bc:50:ce",9)
++CWLAP:(4,"Parikshak--Pool",-88,"d4:6a:91:3c:b9:2e",11)
++CWLAP:(3,"TPLINK24GHZ",-87,"84:16:f9:eb:65:db",11)
+)";
+        strcpy(_response, aplist);
+        strcat(_response, AT_OK);
+        _responseSize = (int)strlen(AT_OK) + (int)strlen(aplist);
+    }
+
     return true;
 }

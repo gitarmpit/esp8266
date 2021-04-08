@@ -33,9 +33,6 @@
     <ClCompile Include="..\http_server\ApSetup.cpp">
       <Filter>SUT</Filter>
     </ClCompile>
-    <ClCompile Include="..\http_server\html.cpp">
-      <Filter>SUT</Filter>
-    </ClCompile>
     <ClCompile Include="..\http_server\HttpRequest.cpp">
       <Filter>SUT</Filter>
     </ClCompile>

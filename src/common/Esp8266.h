@@ -27,6 +27,7 @@
 #define AT_CIPSEND    "AT+CIPSEND"
 #define AT_CWJAP_DEF  "AT+CWJAP_DEF"
 #define AT_CWJAP_CUR  "AT+CWJAP_CUR"
+#define AT_CWLAP      "AT+CWLAP\r\n"
 
 #define SEND_OK        "SEND OK\r\n"
 #define WIFI_CONNECTED "WIFI CONNECTED\r\n"

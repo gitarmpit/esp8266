@@ -1,18 +1,25 @@
 #include "HttpServer.h"
 #include "HttpRequest.h"
 #include "../common/memmem.h"
-#include "html.cpp"
 #include <string.h>
 #include "ApSetup.h"
 
-#define MAIN_PAGE main_html
-
 #define HTTP_DEBUG_MODE
 
-HttpServer::HttpServer(Esp8266_Base* esp, PersistedSettings* settings, Timer* timer, int maxConnections)
+const char* HttpServer::_format200 = 
+    "HTTP/1.1 200 OK\r\nContent-type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
+const char* HttpServer::_format400 =
+    "HTTP/1.1 400 Bad Request\r\nContent-type: text/html\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
+const char* HttpServer::_format404 = 
+    "HTTP/1.1 404 Not Found\r\nContent-type: text/html\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
+const char* HttpServer::_format500 = 
+    "HTTP/1.1 500 Internal Server Error\r\nContent-type: text/html\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
+
+HttpServer::HttpServer(Esp8266_Base* esp, const char* mainPage, PersistedSettings* settings, Timer* timer, int maxConnections)
 {
    _esp = esp;
    _flashSettings = settings;
+   _mainPage = mainPage;
    _running = false;
    _initialized = false;
    _maxConnections = maxConnections;
@@ -90,7 +97,7 @@ bool HttpServer::ReadData(int timeoutMs)
 #ifdef HTTP_DEBUG_MODE
     if (_esp->IsConnectionClosed(_linkId))
     {
-        fprintf(stderr, "ReadData: Connection closed\n");
+        printf("ReadData: Connection closed\n");
     }
 #endif
 
@@ -99,7 +106,7 @@ bool HttpServer::ReadData(int timeoutMs)
         return false;
     }
 #ifdef HTTP_DEBUG_MODE
-    fprintf(stderr, "ReadersHeaders: received %d bytes, id: %d, pos: %d: <%s>\n",
+    printf("ReadersHeaders: received %d bytes, id: %d, pos: %d: <%s>\n",
         size, _linkId, _currentBufPos, &_buf[_currentBufPos]);
 #endif
     _currentBufPos += size;
@@ -124,13 +131,13 @@ bool HttpServer::ReadHeaders(int timeoutMs)
             if (eofHeaderPtr)
             {
 #ifdef HTTP_DEBUG_MODE
-                fprintf(stderr, "Got eof headers\n");
+                printf("Got eof headers\n");
 #endif
                 _eofHeaderPos = (int)(eofHeaderPtr - _buf + 4);
                 break;
             }
 #ifdef HTTP_DEBUG_MODE
-            fprintf(stderr, "No eof headers, keep reading\n");
+            printf("No eof headers, keep reading\n");
 #endif
         }
         else
@@ -142,7 +149,7 @@ bool HttpServer::ReadHeaders(int timeoutMs)
         auto elapsedMs = _timer->ElapsedMs();
         if (elapsedMs > timeoutMs)
         {
-            fprintf(stderr, "Timeout reading headers\n");
+            printf("Timeout reading headers\n");
             rc = false;
             break;
         }
@@ -150,7 +157,7 @@ bool HttpServer::ReadHeaders(int timeoutMs)
         timeoutMs -= elapsedMs;
     }
 
-    return true;
+    return rc;
 }
 
 bool HttpServer::ReadBody()
@@ -161,14 +168,20 @@ bool HttpServer::ReadBody()
         return true;
     }
 
+    if (contentLength >= (BUFFERSIZE - _currentBufPos))
+    {
+        printf("buffer overflow\n");
+        return false;
+    }
+
     bool rc = true;
     while (_running)
     {
-        int remainder = _currentBufPos - _eofHeaderPos;
+        int bodyBytesRead = _currentBufPos - _eofHeaderPos;
 #ifdef HTTP_DEBUG_MODE
-        fprintf(stderr, "Read body: remainder: %d\n", remainder);
+        printf("Read body: remainder: %d\n", bodyBytesRead);
 #endif
-        if (remainder >= contentLength)
+        if (bodyBytesRead >= contentLength)
         {
             break;
         }
@@ -181,127 +194,203 @@ bool HttpServer::ReadBody()
     }
 
 #ifdef HTTP_DEBUG_MODE
-    fprintf(stderr, "body: <%s>\n", &_buf[_eofHeaderPos]);
+    printf("body: <%s>\n", &_buf[_eofHeaderPos]);
 #endif
  
     return rc;
 }
 
-static int cnt;
 void HttpServer::ProcessSetupAPConfing()
 {
-    Response200("text/html", 0);
-    _esp->SendData(_buf, (int)strlen(_buf), 10000, _linkId, true);
+    Response200(CONTENT_TYPE_TEXT_HTML, 0);
     ApSetup apSetup (_esp, &_buf[_eofHeaderPos], &_req);
     apSetup.ParsePostRequest(_flashSettings);
+}
+
+void HttpServer::ProcessGetApList()
+{
+    char buf[1024] = { 0 };
+    if (!_esp->GetListOfAps(buf, sizeof buf - 1))
+    {
+        Response500();
+    }
+    else
+    {
+        int len = (int)strlen(buf);
+        Response200(CONTENT_TYPE_TEXT_HTML, len);
+        _esp->SendData(buf, len, 10000, _linkId, true);
+    }
+}
+
+void HttpServer::GetSsid(char* buf)
+{
+    char* ssid = _flashSettings->GetSsid();
+    if (ssid != NULL)
+    {
+        strcpy(buf, ssid);
+    }
+    else
+    {
+        strcpy(buf, "Not configured");
+    }
 }
 
 void HttpServer::QueryAPConfig()
 {
     char body[32];
-    char* ssid = _flashSettings->GetSsid();
-    if (ssid != NULL)
-    {
-        strcpy (body, ssid);
-    }
-    else
-    {
-        strcpy(body, "None");
-    }
+    GetSsid(body);
 
     int len = (int)strlen((char*)body);
-    Response200("text/html", len);
-    _esp->SendData(_buf, (int)strlen(_buf), 10000, _linkId, true);
+    Response200(CONTENT_TYPE_TEXT_HTML, len);
     _esp->SendData(body, len, 10000, _linkId, true);
 }
 
-
-void HttpServer::Serve(const char* body, const char* contentType)
+void HttpServer::ServeMainPage(const char* body, const char* contentType)
 {
-    int len = (int)strlen(body);
-    Response200(contentType, len);
-    _esp->SendData(_buf, (int)strlen(_buf), 10000, _linkId, true);
-    _esp->SendData(body, len, 10000, _linkId, true);
+    int in_len = (int)strlen(body);
+
+    char apList[1024] = { 0 };
+    _esp->GetListOfAps(apList, sizeof apList - 1);
+
+    char sid[32];
+    GetSsid(sid);
+
+    int malloc_len = in_len + strlen(sid) + strlen(apList) + 1;
+    char* buf = (char*)(malloc(malloc_len));
+    memset(buf, 0, malloc_len);
+    int j = 0;
+    for (int i = 0; i < in_len; )
+    {
+        bool tag_found = false;
+        if (body[i] == '$')
+        {
+            const char* p = strchr(&body[i+1], '$');
+            if (p)
+            {
+                int taglen = (int)(p - &body[i]);
+                if (taglen > 1 && !strncmp(&body[i+1], AP_LIST_TAG, taglen-1))
+                {
+                    strcpy(&buf[j], apList);
+                    j += (int)strlen(apList);
+                    i += taglen+1;
+                    tag_found = true;
+                }
+                else if (taglen > 1 && !strncmp(&body[i + 1], AP_STATUS_TAG, taglen - 1))
+                {
+                    strcpy(&buf[j], sid);
+                    j += (int)strlen(sid);
+                    i += taglen+1;
+                    tag_found = true;
+                }
+            }
+        }
+        if (!tag_found)
+        {
+            buf[j++] = body[i];
+            ++i;
+        }
+    }
+    Response200(contentType, j);
+    _esp->SendData(buf, j, 10000, _linkId, true);
+    free(buf);
 }
 
 void HttpServer::Response200(const char* contentType, int len)
 {
-    const char* fmt = "HTTP/1.1 200 OK\r\nContent-type: %s\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
-    sprintf(_buf, fmt, contentType, len);
+    char buf[256];
+    sprintf(buf, _format200, contentType, len);
+    _esp->SendData(buf, (int)strlen(buf), 10000, _linkId, true);
 }
 
-void HttpServer::Response400(const char* text)
+void HttpServer::Response400()
 {
-    const char* fmt = "HTTP/1.1 400 Bad Request\r\nContent-type: text/html\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
-    sprintf(_buf, fmt, text ? strlen(text) : 0);
-    if (text)
+    char buf[256];
+    sprintf(buf, _format400, 0);
+    _esp->SendData(buf, (int)strlen(buf), 10000, _linkId, true);
+}
+
+void HttpServer::Response404()
+{
+    char buf[256];
+    sprintf(buf, _format404, 0);
+    _esp->SendData(buf, (int)strlen(buf), 10000, _linkId, true);
+}
+
+void HttpServer::Response500(const char* error)
+{
+    char buf[256];
+    int len = (error != NULL) ? (int)strlen(error) : 0;
+    sprintf(buf, _format500, len);
+    _esp->SendData(buf, (int)strlen(buf), 10000, _linkId, true);
+    if (len > 0)
     {
-        strcat(_buf, text);
+        _esp->SendData(error, len, 10000, _linkId, true);
     }
 }
 
-void HttpServer::Response404(const char* text)
-{
-    const char* fmt = "HTTP/1.1 404 Not Found\r\nContent-type: text/html\r\nContent-Length: %d\r\nConnection: close\r\n\r\n";
-    sprintf(_buf, fmt, text ? strlen(text) : 0);
-    if (text)
-    {
-        strcat(_buf, text);
-    }
-}
 
-void HttpServer::ProcessRequest()
+bool HttpServer::ProcessRequest()
 {
     if (!ReadHeaders(1000))
     {
-        return;
+        return false;
     }
+
+    bool rc = false;
 
     if (_req.Parse(_buf, _currentBufPos))
     {
-        fprintf(stderr, "headers read, content-length: %d\n", _req.GetContentLength());
-        fprintf(stderr, "method: %d, uri: %s\n", _req.GetMethod(), _req.GetURI());
+        printf("headers read, content-length: %d\n", _req.GetContentLength());
+        printf("method: %d, uri: %s\n", _req.GetMethod(), _req.GetURI());
         if (!ReadBody())
         {
             Response400();
-            _esp->SendData(_buf, (int)strlen(_buf), 10000, _linkId, true);
         }
         else  if (!strcmp(_req.GetURI(), "/"))
         {
             printf("serving main page\n");
-            Serve(MAIN_PAGE, "text/html; charset=utf-8");
+            //ServeMainPage(_mainPage, "text/html; charset=utf-8");
+            ServeMainPage(_mainPage, CONTENT_TYPE_TEXT_HTML);
         }
-        else  if (!strcmp(_req.GetURI(), "/set_ap_config"))
+        else  if (!strcmp(_req.GetURI(), HTTP_EP_GET_AP_LIST))
+        {
+            //Ajax request to get AP list
+            printf("process get_ap_list\n");
+            ProcessGetApList();
+        }
+        else  if (!strcmp(_req.GetURI(), HTTP_EP_SET_AP_CONFIG))
         {
             //Ajax request to configure SSID;password for router
-            fprintf(stderr, "process set_ap_config: %d\n", cnt);
+            printf("process set_ap_config\n");
             ProcessSetupAPConfing();
         }
-        else  if (strstr(_req.GetURI(), "/query_ap_config"))
+        else  if (strstr(_req.GetURI(), HTTP_EP_QUERY_AP_CONFIG))
         {
             //Ajax request to check if router has been configured 
             //check saved settings in FLASH, if ssid is set, return it 
-            fprintf(stderr, "process query_ap_config: %d\n", cnt);
+            printf("process query_ap_config\n");
             QueryAPConfig();
         }
         else
         {
-            fprintf(stderr, "sending 404 for: %s", _req.GetURI());
+            printf("sending 404 for: %s", _req.GetURI());
             Response404();
-            _esp->SendData(_buf, (int)strlen(_buf), 10000, _linkId, true);
         }
 
 #ifdef HTTP_DEBUG_MODE
         if (_esp->IsConnectionClosed(_linkId))
         {
-            fprintf(stderr, "After sendResponse: Connection closed\n");
+            printf("After sendResponse: Connection closed\n");
         }
+        rc = true;
 #endif
     }
     else
     {
-        fprintf(stderr, "Error parsing headers\n");
+        rc = false;
+        printf("Error parsing headers\n");
     }
+    return rc;
 }
 
 bool HttpServer::Run()

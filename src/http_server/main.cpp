@@ -4,6 +4,8 @@
 #include "HttpServer.h"
 #include "../common/PersistedSettings.h"
 #include "../common/Timer.h"
+#include "html.cpp"
+
 
 static void http_server(int argc, char** argv)
 {
@@ -33,7 +35,7 @@ static void http_server(int argc, char** argv)
     //esp.SetAP_SSID_Password("Nash_1", "427215427215");
 
     Timer timer2;
-    HttpServer httpServer(&esp, &ps, &timer2, 2);
+    HttpServer httpServer(&esp, main_html, &ps, &timer2, 2);
     httpServer.Run();
 }
 

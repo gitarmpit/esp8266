@@ -9,7 +9,7 @@ static char* parse(char* buf_in, int len, const char* var_name)
     memset (buf_out, 0, len*2*sizeof(char));
 
     int out_pos = 0;
-    char begin[] = "const char %s[] = \"\\\n";
+    char begin[] = "const char* %s = \"\\\n";
     char end[] = "\";\n";
     sprintf (buf_out, begin, var_name);
     out_pos += strlen(buf_out);
@@ -29,6 +29,10 @@ static char* parse(char* buf_in, int len, const char* var_name)
         {
            buf_out[out_pos++] = '\\';
            buf_out[out_pos++] = 'n';
+           buf_out[out_pos++] = '\\';
+        }
+        else if (c == '\\') 
+        {
            buf_out[out_pos++] = '\\';
         }
            

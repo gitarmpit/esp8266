@@ -71,6 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -159,7 +160,6 @@
     <ClCompile Include="..\common\PersistedSettings.cpp" />
     <ClCompile Include="..\common\Timer.cpp" />
     <ClCompile Include="..\http_server\ApSetup.cpp" />
-    <ClCompile Include="..\http_server\html.cpp" />
     <ClCompile Include="..\http_server\HttpRequest.cpp" />
     <ClCompile Include="..\http_server\HttpServer.cpp" />
     <ClCompile Include="ApSetup_tests.cpp" />

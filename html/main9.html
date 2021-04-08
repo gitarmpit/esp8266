@@ -317,31 +317,55 @@
     var retries;
     var max_retries = 20;
     var retry_timeout = 1000;
+    const g_apList = `$AP_LIST$`;
+
+    var apStatus = "$AP_STATUS$";
 
     window.onload = function(){
-      var xhttp = new XMLHttpRequest();
-      xhttp.timeout = 5000;
-      xhttp.onreadystatechange = function () {
-        if (this.readyState == 4) {
-          
-          if (this.status == 200) {
-            let response = this.responseText;
-            if (response === "") 
-            {
-                response = "Not configured";
+      initApList(g_apList);
+      document.getElementById("status").innerHTML = apStatus;
+    };
+
+    function apEntry(ssid, db) 
+    {
+        this.ssid = ssid;
+        this.db = db;
+    }
+
+    function initApList(apList) 
+    {
+      var selectList = document.getElementById("ap-list");
+
+      if (selectList != null)  {
+        selectList.innerText = null;
+        
+        var lines = apList.split("\n");
+        
+        var apArray = new Array();
+        var maxLen = 0;
+        for (var l of lines) 
+        {
+          if (l.length > 0) {
+            var fields = l.split(",");
+            var ssid = fields[1].replace(/"/g, '');
+            if (ssid.length > maxLen) {
+               maxLen = ssid.length;
             }
-            else 
-            {
-                response = "Connected to " + response;
-            }
-            document.getElementById("status").innerHTML = response;
+            var db = fields[2];
+            apArray.push(new apEntry(ssid, db));  
           }
         }
-      };
-
-      xhttp.open("GET", "/query_ap_config", true);
-
-    };
+        apArray = apArray.sort((e1, e2) => e2.db - e1.db);
+        for (var e of apArray) 
+        {
+            var val = e.ssid;
+            var option = document.createElement("option");
+            option.value = val;
+            option.text = val;
+            selectList.appendChild(option);
+        }
+      }   
+    }
 
     function check_input() {
       if (document.getElementById("password").value === "") {
@@ -352,33 +376,46 @@
       }
     }
 
-    function on_submit() {
-      document.getElementById("submit").disabled = true;
-      document.getElementById("ssid").disabled = true;
-      document.getElementById("password").disabled = true;
+    function spinner_on() {
       document.getElementById("overlay-spinner").style.display = "block";
+    }
 
-      let ssid = document.getElementById("ssid").value;
+    function spinner_off() {
+      document.getElementById("overlay-spinner").style.display = "none";
+    }
+
+    function on_submit() {
+      disable_form();
+      spinner_on();
+      let ssid = document.getElementById("ap-list").value;
       let password = document.getElementById("password").value;
-
-      document.getElementById("spinner").style.display = "block";
-
       setAPCfg(ssid, password);
     }
 
+    function disable_form() {
+      document.getElementById("submit").disabled = true;
+      document.getElementById("ap-list").disabled = true;
+      document.getElementById("password").disabled = true;
+    } 
+
     function enable_form(is_success, msg) {
-      document.getElementById("overlay-spinner").style.display = "none";
-      document.getElementById("ssid").disabled = false;
+      spinner_off();
+      document.getElementById("ap-list").disabled = false;
       document.getElementById("password").disabled = false;
 
       if (is_success) {
-        document.getElementById("ssid").value = "";
         document.getElementById("password").value = "";
         document.getElementById("submit").disabled = true;
       }
       else {
         document.getElementById("submit").disabled = false;
       }
+
+      if (msg.length > 0) 
+      {
+        document.getElementById("status").innerHTML = msg;
+      }
+
     }
 
     function setAPCfg(ssid, password) {
@@ -393,7 +430,7 @@
             restartQuery();
           }
           else {
-            enable_form(false);
+            enable_form(false, "set_ap_config_error");
           }
         }
       };
@@ -404,7 +441,7 @@
 
     function restartQuery() {
       if (retries++ > max_retries) {
-        enable_form(false);
+        enable_form(false, "set_ap_config error");
       }
       else {
         window.setTimeout(queryAPCfg, 3000);
@@ -419,7 +456,7 @@
         if (this.readyState == 4) {
           if (this.status == 200) {
             let response = this.responseText;
-            enable_form(this.status == 200, response);
+            enable_form(true, response);
           }
           else {
             restartQuery();
@@ -435,38 +472,27 @@
       document.getElementById(id).style.display = "none";
     }
 
-var cnt = 0;
-    function populateApList() {
+    function on_populate() {
 
-    /*
-      if (cnt++ % 2 == 0)
-      {
-        document.getElementById("overlay-dialog-error").style.display = "block";
-      }
-      else
-      {
-        document.getElementById("overlay-dialog-ok").style.display = "block";
-      }
-   */
-
-            document.getElementById("spinner").style.display = "block";
+            disable_form();
+            spinner_on();
 
             var xhttp = new XMLHttpRequest();
             xhttp.timeout = retry_timeout;
             xhttp.onreadystatechange = function () {
               if (this.readyState == 4) {
                 if (this.status == 200) {
-                  let response = this.responseText;
-                  enable_form(this.status == 200, response);
-                  document.getElementById("status").innerHTML = response;
+                  initApList(this.responseText);
+                  enable_form(true, "");
                 }
                 else {
-                  // restartQuery();
+                  enable_form(false, "get_ap_list error");
                 }
+                spinner_off();
               }
             };
       
-            xhttp.open("GET", "/query_ap_config", true);
+            xhttp.open("GET", "/get_ap_list", true);
             xhttp.send();
     }
 
@@ -477,25 +503,21 @@ var cnt = 0;
 
 <body>
 
-
   <div class="wrapper">
     <div>
-      <text style="font-size: 2vw; font-weight: bold;">AP configuration</text>
+      <div style="text-align: center">AP Configuration</div>
     </div>
     <div>
       <form id="main-form">
-        <button type="button" class="button" id="populate" onClick="populateApList()">Populate AP list</button>
-        <label for="ssid">SSID:</label>
-        <select name="ssid" id="ssid">
-          <option value="ssid1">ssid1</option>
-          <option value="ssid2">ssid1</option>
-          <option value="ssid3">ssid1</option>
+        <button type="button" class="button" id="populate" onClick="on_populate()">Populate AP list</button>
+        <label for="ap-list">SSID:</label>
+        <select name="ap-list" id="ap-list">
         </select>
         <label for="password">Password:</label>
         <input type="text" id="password" name="password" onkeyup="check_input()">
         <button type="button" class="button" id="submit" onClick="on_submit()"  disabled>Submit</button>
       </form>
-      Status: <label id="status">Not configured</label>
+      Status: <label id="status">???</label>
     </div>
 
   </div>
@@ -519,7 +541,6 @@ var cnt = 0;
       <div></div>
     </div>
   </div>
-
   
   <div class="overlay" id="overlay-dialog-ok">
     <div class="dialog-div">
@@ -540,6 +561,7 @@ var cnt = 0;
         <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-error')">OK</button></div>
     </div>
   </div>
+
 
 </body>
 

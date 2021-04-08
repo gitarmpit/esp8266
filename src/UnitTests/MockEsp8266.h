@@ -15,6 +15,8 @@ public:
         ON_CALL(*this, IsConnectedToAP).WillByDefault(Return(true));
         ON_CALL(*this, SetMux).WillByDefault(Return(true));
         ON_CALL(*this, StartServer).WillByDefault(Return(true));
+        ON_CALL(*this, StopServer).WillByDefault(Return(true));
+        ON_CALL(*this, ReceiveData).WillByDefault(Return(false));
     }
     virtual ~MockEsp8266() {}
     MOCK_METHOD(bool, SendCommand, (const char* buf, int len), (override));

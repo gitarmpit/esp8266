@@ -1,6 +1,6 @@
 //Generated from: ..\..\html\main9.html
 
-const char main_html[] = "\
+const char* main_html = "\
 <!DOCTYPE html>\n\
 <html>\n\
 \n\
@@ -320,31 +320,55 @@ const char main_html[] = "\
     var retries;\n\
     var max_retries = 20;\n\
     var retry_timeout = 1000;\n\
+    const g_apList = `$AP_LIST$`;\n\
+\n\
+    var apStatus = \"$AP_STATUS$\";\n\
 \n\
     window.onload = function(){\n\
-      var xhttp = new XMLHttpRequest();\n\
-      xhttp.timeout = 5000;\n\
-      xhttp.onreadystatechange = function () {\n\
-        if (this.readyState == 4) {\n\
-          \n\
-          if (this.status == 200) {\n\
-            let response = this.responseText;\n\
-            if (response === \"\") \n\
-            {\n\
-                response = \"Not configured\";\n\
+      initApList(g_apList);\n\
+      document.getElementById(\"status\").innerHTML = apStatus;\n\
+    };\n\
+\n\
+    function apEntry(ssid, db) \n\
+    {\n\
+        this.ssid = ssid;\n\
+        this.db = db;\n\
+    }\n\
+\n\
+    function initApList(apList) \n\
+    {\n\
+      var selectList = document.getElementById(\"ap-list\");\n\
+\n\
+      if (selectList != null)  {\n\
+        selectList.innerText = null;\n\
+        \n\
+        var lines = apList.split(\"\\n\");\n\
+        \n\
+        var apArray = new Array();\n\
+        var maxLen = 0;\n\
+        for (var l of lines) \n\
+        {\n\
+          if (l.length > 0) {\n\
+            var fields = l.split(\",\");\n\
+            var ssid = fields[1].replace(/\"/g, '');\n\
+            if (ssid.length > maxLen) {\n\
+               maxLen = ssid.length;\n\
             }\n\
-            else \n\
-            {\n\
-                response = \"Connected to \" + response;\n\
-            }\n\
-            document.getElementById(\"status\").innerHTML = response;\n\
+            var db = fields[2];\n\
+            apArray.push(new apEntry(ssid, db));  \n\
           }\n\
         }\n\
-      };\n\
-\n\
-      xhttp.open(\"GET\", \"/query_ap_config\", true);\n\
-\n\
-    };\n\
+        apArray = apArray.sort((e1, e2) => e2.db - e1.db);\n\
+        for (var e of apArray) \n\
+        {\n\
+            var val = e.ssid;\n\
+            var option = document.createElement(\"option\");\n\
+            option.value = val;\n\
+            option.text = val;\n\
+            selectList.appendChild(option);\n\
+        }\n\
+      }   \n\
+    }\n\
 \n\
     function check_input() {\n\
       if (document.getElementById(\"password\").value === \"\") {\n\
@@ -355,33 +379,46 @@ const char main_html[] = "\
       }\n\
     }\n\
 \n\
-    function on_submit() {\n\
-      document.getElementById(\"submit\").disabled = true;\n\
-      document.getElementById(\"ssid\").disabled = true;\n\
-      document.getElementById(\"password\").disabled = true;\n\
+    function spinner_on() {\n\
       document.getElementById(\"overlay-spinner\").style.display = \"block\";\n\
+    }\n\
 \n\
-      let ssid = document.getElementById(\"ssid\").value;\n\
+    function spinner_off() {\n\
+      document.getElementById(\"overlay-spinner\").style.display = \"none\";\n\
+    }\n\
+\n\
+    function on_submit() {\n\
+      disable_form();\n\
+      spinner_on();\n\
+      let ssid = document.getElementById(\"ap-list\").value;\n\
       let password = document.getElementById(\"password\").value;\n\
-\n\
-      document.getElementById(\"spinner\").style.display = \"block\";\n\
-\n\
       setAPCfg(ssid, password);\n\
     }\n\
 \n\
+    function disable_form() {\n\
+      document.getElementById(\"submit\").disabled = true;\n\
+      document.getElementById(\"ap-list\").disabled = true;\n\
+      document.getElementById(\"password\").disabled = true;\n\
+    } \n\
+\n\
     function enable_form(is_success, msg) {\n\
-      document.getElementById(\"overlay-spinner\").style.display = \"none\";\n\
-      document.getElementById(\"ssid\").disabled = false;\n\
+      spinner_off();\n\
+      document.getElementById(\"ap-list\").disabled = false;\n\
       document.getElementById(\"password\").disabled = false;\n\
 \n\
       if (is_success) {\n\
-        document.getElementById(\"ssid\").value = \"\";\n\
         document.getElementById(\"password\").value = \"\";\n\
         document.getElementById(\"submit\").disabled = true;\n\
       }\n\
       else {\n\
         document.getElementById(\"submit\").disabled = false;\n\
       }\n\
+\n\
+      if (msg.length > 0) \n\
+      {\n\
+        document.getElementById(\"status\").innerHTML = msg;\n\
+      }\n\
+\n\
     }\n\
 \n\
     function setAPCfg(ssid, password) {\n\
@@ -396,7 +433,7 @@ const char main_html[] = "\
             restartQuery();\n\
           }\n\
           else {\n\
-            enable_form(false);\n\
+            enable_form(false, \"set_ap_config_error\");\n\
           }\n\
         }\n\
       };\n\
@@ -407,7 +444,7 @@ const char main_html[] = "\
 \n\
     function restartQuery() {\n\
       if (retries++ > max_retries) {\n\
-        enable_form(false);\n\
+        enable_form(false, \"set_ap_config error\");\n\
       }\n\
       else {\n\
         window.setTimeout(queryAPCfg, 3000);\n\
@@ -422,7 +459,7 @@ const char main_html[] = "\
         if (this.readyState == 4) {\n\
           if (this.status == 200) {\n\
             let response = this.responseText;\n\
-            enable_form(this.status == 200, response);\n\
+            enable_form(true, response);\n\
           }\n\
           else {\n\
             restartQuery();\n\
@@ -438,38 +475,27 @@ const char main_html[] = "\
       document.getElementById(id).style.display = \"none\";\n\
     }\n\
 \n\
-var cnt = 0;\n\
-    function populateApList() {\n\
+    function on_populate() {\n\
 \n\
-    /*\n\
-      if (cnt++ % 2 == 0)\n\
-      {\n\
-        document.getElementById(\"overlay-dialog-error\").style.display = \"block\";\n\
-      }\n\
-      else\n\
-      {\n\
-        document.getElementById(\"overlay-dialog-ok\").style.display = \"block\";\n\
-      }\n\
-   */\n\
-\n\
-            document.getElementById(\"spinner\").style.display = \"block\";\n\
+            disable_form();\n\
+            spinner_on();\n\
 \n\
             var xhttp = new XMLHttpRequest();\n\
             xhttp.timeout = retry_timeout;\n\
             xhttp.onreadystatechange = function () {\n\
               if (this.readyState == 4) {\n\
                 if (this.status == 200) {\n\
-                  let response = this.responseText;\n\
-                  enable_form(this.status == 200, response);\n\
-                  document.getElementById(\"status\").innerHTML = response;\n\
+                  initApList(this.responseText);\n\
+                  enable_form(true, \"\");\n\
                 }\n\
                 else {\n\
-                  // restartQuery();\n\
+                  enable_form(false, \"get_ap_list error\");\n\
                 }\n\
+                spinner_off();\n\
               }\n\
             };\n\
       \n\
-            xhttp.open(\"GET\", \"/query_ap_config\", true);\n\
+            xhttp.open(\"GET\", \"/get_ap_list\", true);\n\
             xhttp.send();\n\
     }\n\
 \n\
@@ -480,25 +506,21 @@ var cnt = 0;\n\
 \n\
 <body>\n\
 \n\
-\n\
   <div class=\"wrapper\">\n\
     <div>\n\
-      <text style=\"font-size: 2vw; font-weight: bold;\">AP configuration</text>\n\
+      <div style=\"text-align: center\">AP Configuration</div>\n\
     </div>\n\
     <div>\n\
       <form id=\"main-form\">\n\
-        <button type=\"button\" class=\"button\" id=\"populate\" onClick=\"populateApList()\">Populate AP list</button>\n\
-        <label for=\"ssid\">SSID:</label>\n\
-        <select name=\"ssid\" id=\"ssid\">\n\
-          <option value=\"ssid1\">ssid1</option>\n\
-          <option value=\"ssid2\">ssid1</option>\n\
-          <option value=\"ssid3\">ssid1</option>\n\
+        <button type=\"button\" class=\"button\" id=\"populate\" onClick=\"on_populate()\">Populate AP list</button>\n\
+        <label for=\"ap-list\">SSID:</label>\n\
+        <select name=\"ap-list\" id=\"ap-list\">\n\
         </select>\n\
         <label for=\"password\">Password:</label>\n\
         <input type=\"text\" id=\"password\" name=\"password\" onkeyup=\"check_input()\">\n\
         <button type=\"button\" class=\"button\" id=\"submit\" onClick=\"on_submit()\"  disabled>Submit</button>\n\
       </form>\n\
-      Status: <label id=\"status\">Not configured</label>\n\
+      Status: <label id=\"status\">???</label>\n\
     </div>\n\
 \n\
   </div>\n\
@@ -522,7 +544,6 @@ var cnt = 0;\n\
       <div></div>\n\
     </div>\n\
   </div>\n\
-\n\
   \n\
   <div class=\"overlay\" id=\"overlay-dialog-ok\">\n\
     <div class=\"dialog-div\">\n\
@@ -543,6 +564,7 @@ var cnt = 0;\n\
         <div class=\"button-grid\"><button class=\"dialog-button\" onclick=\"closeModal('overlay-dialog-error')\">OK</button></div>\n\
     </div>\n\
   </div>\n\
+\n\
 \n\
 </body>\n\
 \n\

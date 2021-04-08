@@ -96,6 +96,6 @@ public:
     virtual bool Send(const char* buf, int size = 0);
 private:
     bool _isSending;
-    char _response[256];
+    char _response[2048];
     int  _responseSize;
 };
