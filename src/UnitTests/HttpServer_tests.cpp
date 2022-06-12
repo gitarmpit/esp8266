@@ -309,7 +309,7 @@ TEST_F(HttpServerTests, Get_404)
 TEST_F(HttpServerTests, QueryAPConfigNotSet_Success)
 {
     char buf[256];
-    const char* response = "Not configured";
+    const char* response = "";
     sprintf(buf, GetFormat200(), CONTENT_TYPE_TEXT_HTML, strlen(response));
     std::string http_request = "GET" + std::string(HTTP_EP_QUERY_AP_CONFIG) + " HTTP/1.1\r\n\r\n";
     {

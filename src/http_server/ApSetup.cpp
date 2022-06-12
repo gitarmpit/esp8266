@@ -54,15 +54,17 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
             return false;
         }
 
+        /*
         if (!_esp->SetMode(Esp8266::MODE::MODE_STATION_AP))
         {
             fprintf(stderr, "Error setting station mode\n");
             return false;
         }
+        */
 
         // Verify that we can connect to AP then switch back to AP mode
         // and start server again
-        if (_esp->ConnectToAP(ssid, pass, false, 10000) && _esp->IsConnectedToAP())
+        if (strcmp(pass, "error") && _esp->ConnectToAP(ssid, pass, false, 10000) && _esp->IsConnectedToAP())
         {
             settings->SetApSettings(ssid, pass);
             fprintf(stderr, "Disconnecting from AP\n");
@@ -79,6 +81,7 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
             fprintf(stderr, "FAIL: %d\n", expect_rc);
         }
 
+        /*
         // Switch back to AP 
         if (!_esp->SetMode(Esp8266::MODE::MODE_AP))
         {
@@ -87,6 +90,7 @@ bool ApSetup::ParsePostRequest(PersistedSettings* settings)
         }
 
         fprintf(stderr, "AP mode set\n");
+        */
         // Sleep(5000);
 
         fprintf(stderr, "Starting server\n");

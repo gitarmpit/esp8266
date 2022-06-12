@@ -1,4 +1,4 @@
-//Generated from: ..\..\html\main9.html
+//Generated from: ..\..\html\main15.html
 
 const char* main_html = "\
 <!DOCTYPE html>\n\
@@ -6,44 +6,111 @@ const char* main_html = "\
 \n\
 <head>\n\
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\">\n\
+\n\
   <style>\n\
-    :root {\n\
-      --main-bg-color: #c1c2e6;\n\
-      --botton-bg-color: #c1c2e6;\n\
-      --botton-color: black;\n\
-      --text-color: black;\n\
-      --dialog-bg-color: #dadbed;\n\
-      --form-bg-color: #dadbed;\n\
-      --input-bg-color: white;\n\
+    #title {\n\
+      max-width: 300px;\n\
+      border: none;\n\
+      background-color: white;\n\
+      border-radius: 10px 10px 0 0;\n\
+      padding: 0.5em 1em;\n\
+      color: #335b71;\n\
+      font-family: Helvetica, Arial, sans-serif;\n\
     }\n\
 \n\
-    body {\n\
-      background-color: var(--main-bg-color);\n\
+    #form {\n\
+      display: grid;\n\
+      grid-template-columns: auto;\n\
+      grid-auto-rows: 1fr;\n\
+      max-width: 300px;\n\
+      row-gap: 10px;\n\
+      padding: 10px;\n\
+\n\
+      border: none;\n\
+      background-color: white;\n\
+      text-align: center;\n\
     }\n\
 \n\
-    text {\n\
-      color: var(--text-color);\n\
-      white-space: nowrap;\n\
+    #status-div {\n\
+      display: grid;\n\
+      grid-template-columns: auto;\n\
+      grid-auto-rows: 1fr;\n\
+      max-width: 300px;\n\
+      row-gap: 10px;\n\
+      padding: 10px;\n\
+      border: none;\n\
+      text-align: left;\n\
     }\n\
 \n\
-    h1 {\n\
-      color: var(--text-color);\n\
+    #connected-div {\n\
+      display: grid;\n\
+      grid-template-columns: auto;\n\
+      grid-auto-rows: 1fr;\n\
+      max-width: 300px;\n\
+      row-gap: 0em;\n\
+      padding: 0em;\n\
+      border: none;\n\
+      text-align: left;\n\
     }\n\
 \n\
-    hr.rounded {\n\
-      border-top: 4px solid black;\n\
-      border-radius: 4px;\n\
+    #brightness-div {\n\
+      display: grid;\n\
+      grid-template-columns: auto;\n\
+      grid-auto-rows: 1fr;\n\
+      max-width: 300px;\n\
+      row-gap: 0em;\n\
+      padding: 0em;\n\
+      border: none;\n\
+      padding: 0px 0px 0px 10px;\n\
+      text-align: left;\n\
     }\n\
 \n\
     button {\n\
-      color: var(--botton-color);\n\
-      background-color: var(--botton-bg-color);\n\
-      padding: 0.7em;\n\
-      width: 100%;\n\
-      border: 2px solid gray;\n\
-      border-radius: 4px;\n\
+      background: linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);\n\
+      background-color: #7892c2;\n\
+      border-radius: 22px;\n\
+      border: 1px solid #4e6096;\n\
+      display: inline-block;\n\
+      cursor: pointer;\n\
+      color: #ffffff;\n\
+      font-family: Arial;\n\
+      font-size: 17px;\n\
+      padding: 16px 41px;\n\
+      text-decoration: none;\n\
+      text-shadow: 0px 1px 0px #283966;\n\
     }\n\
 \n\
+    select {\n\
+      color: #335b71;\n\
+      text-decoration: none;\n\
+      font-family: Helvetica, Arial, sans-serif;\n\
+      font-size: 14px;\n\
+      text-align: center;\n\
+      padding: 5px;\n\
+      line-height: 30px;\n\
+      border-radius: 20px;\n\
+      box-shadow: 0 2px 2px #888888;\n\
+      outline: none;\n\
+    }\n\
+\n\
+    input {\n\
+      color: #335b71;\n\
+      text-decoration: none;\n\
+      font-family: Helvetica, Arial, sans-serif;\n\
+      font-size: 14px;\n\
+      padding: 0px;\n\
+      border: none;\n\
+      border-bottom: 1px solid #335b71;\n\
+      background: transparent;\n\
+      height: 40px;\n\
+      border-radius: 0;\n\
+    }\n\
+\n\
+    input:focus {\n\
+      outline: none;\n\
+    }\n\
+\n\
+    /*****************************/\n\
     .overlay {\n\
       position: fixed;\n\
       display: none;\n\
@@ -58,118 +125,6 @@ const char* main_html = "\
       cursor: pointer;\n\
     }\n\
 \n\
-    .dialog-div {\n\
-      display: inline-grid;\n\
-      grid-template-columns: auto auto;\n\
-      position: absolute;\n\
-      top: 50%;\n\
-      left: 50%;\n\
-      color: white;\n\
-      transform: translate(-50%, -50%);\n\
-      -ms-transform: translate(-50%, -50%);\n\
-      background-color: var(--dialog-bg-color);\n\
-      border: 8px solid var(--main-bg-color);\n\
-      /*margin: 2rem auto 0 auto;*/\n\
-      margin: 2px;\n\
-      /*min-width: 50%;*/\n\
-      padding: 1em;\n\
-      border-radius: 4px;\n\
-      justify-items: center;\n\
-      align-items: center;\n\
-    }\n\
-\n\
-    .button-grid {\n\
-      grid-column: 1 / span 2;\n\
-      width: 40%;\n\
-      padding: 1em 0 0 60%;\n\
-    }\n\
-\n\
-    .dialog-circle {\n\
-      width: 30px;\n\
-      height: 30px;\n\
-      line-height: 28px;\n\
-      border-radius: 50%;\n\
-      border: 4px solid white;\n\
-      color: white;\n\
-      font-size: 20px;\n\
-      font-family: verdana;\n\
-      text-align: center;\n\
-    }\n\
-\n\
-    #x {\n\
-      color: white;\n\
-      font-size: 20px;\n\
-    }\n\
-\n\
-    .msg-text {\n\
-      color: black;\n\
-      padding: 0 0 0 10px;\n\
-    }\n\
-\n\
-    #dialog-circle-ok {\n\
-      background: #009900;\n\
-    }\n\
-\n\
-    #dialog-circle-error {\n\
-      background: #990000;\n\
-    }\n\
-\n\
-    /*****************************/\n\
-\n\
-    #main-form {\n\
-      display: grid;\n\
-      padding: 1em 1em 1em 0;\n\
-      background-color: var(--form-bg-color);\n\
-      border: 2px solid black;\n\
-      /*margin: 2rem auto 0 auto;*/\n\
-      max-width: 400px;\n\
-    }\n\
-\n\
-    #main-form input {\n\
-      background: var(--input-bg-color);\n\
-      border: 1px solid #9c9c9c;\n\
-      border-radius: 4px;\n\
-    }\n\
-\n\
-    #main-form button:hover {\n\
-      border: 2px solid black;\n\
-    }\n\
-\n\
-    label {\n\
-      padding: 0.5em 0.5em 0.5em 0;\n\
-    }\n\
-\n\
-    input {\n\
-      padding: 0.7em;\n\
-      margin-bottom: 0.5rem;\n\
-    }\n\
-\n\
-    input:focus {\n\
-      outline: 3px solid black;\n\
-    }\n\
-\n\
-    @media (min-width: 300px) {\n\
-      form {\n\
-        grid-template-columns: 100px 1fr;\n\
-        grid-gap: 16px;\n\
-      }\n\
-\n\
-      label {\n\
-        text-align: right;\n\
-        grid-column: 1 / 2;\n\
-      }\n\
-\n\
-      input,\n\
-      button {\n\
-        grid-column: 2 / 3;\n\
-      }\n\
-    }\n\
-\n\
-    .wrapper {\n\
-      display: grid;\n\
-    }\n\
-\n\
-    /*****************************/\n\
     .spinner {\n\
       position: absolute;\n\
       top: 50%;\n\
@@ -292,7 +247,6 @@ const char* main_html = "\
       transform: rotate(330deg);\n\
     }\n\
 \n\
-\n\
     @-webkit-keyframes spinner-fade {\n\
       0% {\n\
         /*background-color: #69717d;*/\n\
@@ -324,50 +278,47 @@ const char* main_html = "\
 \n\
     var apStatus = \"$AP_STATUS$\";\n\
 \n\
-    window.onload = function(){\n\
+    window.onload = function () {\n\
       initApList(g_apList);\n\
-      document.getElementById(\"status\").innerHTML = apStatus;\n\
+      setStatus(apStatus);\n\
+      spinner_off();\n\
     };\n\
 \n\
-    function apEntry(ssid, db) \n\
-    {\n\
-        this.ssid = ssid;\n\
-        this.db = db;\n\
+    function apEntry(ssid, db) {\n\
+      this.ssid = ssid;\n\
+      this.db = db;\n\
     }\n\
 \n\
-    function initApList(apList) \n\
-    {\n\
+    function initApList(apList) {\n\
       var selectList = document.getElementById(\"ap-list\");\n\
 \n\
-      if (selectList != null)  {\n\
+      if (selectList != null) {\n\
         selectList.innerText = null;\n\
-        \n\
+\n\
         var lines = apList.split(\"\\n\");\n\
-        \n\
+\n\
         var apArray = new Array();\n\
         var maxLen = 0;\n\
-        for (var l of lines) \n\
-        {\n\
+        for (var l of lines) {\n\
           if (l.length > 0) {\n\
             var fields = l.split(\",\");\n\
             var ssid = fields[1].replace(/\"/g, '');\n\
             if (ssid.length > maxLen) {\n\
-               maxLen = ssid.length;\n\
+              maxLen = ssid.length;\n\
             }\n\
             var db = fields[2];\n\
-            apArray.push(new apEntry(ssid, db));  \n\
+            apArray.push(new apEntry(ssid, db));\n\
           }\n\
         }\n\
         apArray = apArray.sort((e1, e2) => e2.db - e1.db);\n\
-        for (var e of apArray) \n\
-        {\n\
-            var val = e.ssid;\n\
-            var option = document.createElement(\"option\");\n\
-            option.value = val;\n\
-            option.text = val;\n\
-            selectList.appendChild(option);\n\
+        for (var e of apArray) {\n\
+          var val = e.ssid;\n\
+          var option = document.createElement(\"option\");\n\
+          option.value = val;\n\
+          option.text = val;\n\
+          selectList.appendChild(option);\n\
         }\n\
-      }   \n\
+      }\n\
     }\n\
 \n\
     function check_input() {\n\
@@ -387,21 +338,13 @@ const char* main_html = "\
       document.getElementById(\"overlay-spinner\").style.display = \"none\";\n\
     }\n\
 \n\
-    function on_submit() {\n\
-      disable_form();\n\
-      spinner_on();\n\
-      let ssid = document.getElementById(\"ap-list\").value;\n\
-      let password = document.getElementById(\"password\").value;\n\
-      setAPCfg(ssid, password);\n\
-    }\n\
-\n\
     function disable_form() {\n\
       document.getElementById(\"submit\").disabled = true;\n\
       document.getElementById(\"ap-list\").disabled = true;\n\
       document.getElementById(\"password\").disabled = true;\n\
-    } \n\
+    }\n\
 \n\
-    function enable_form(is_success, msg) {\n\
+    function enable_form(is_success, error_msg) {\n\
       spinner_off();\n\
       document.getElementById(\"ap-list\").disabled = false;\n\
       document.getElementById(\"password\").disabled = false;\n\
@@ -409,16 +352,44 @@ const char* main_html = "\
       if (is_success) {\n\
         document.getElementById(\"password\").value = \"\";\n\
         document.getElementById(\"submit\").disabled = true;\n\
+        document.getElementById(\"error\").innerHTML = \"\";\n\
       }\n\
       else {\n\
         document.getElementById(\"submit\").disabled = false;\n\
+        document.getElementById(\"error\").innerHTML = error_msg;\n\
       }\n\
 \n\
-      if (msg.length > 0) \n\
-      {\n\
-        document.getElementById(\"status\").innerHTML = msg;\n\
-      }\n\
+    }\n\
 \n\
+    function on_populate() {\n\
+\n\
+      disable_form();\n\
+      spinner_on();\n\
+\n\
+      var xhttp = new XMLHttpRequest();\n\
+      xhttp.timeout = 20000;\n\
+      xhttp.onreadystatechange = function () {\n\
+        if (this.readyState == 4) {\n\
+          if (this.status == 200) {\n\
+            initApList(this.responseText);\n\
+            enable_form(true);\n\
+          }\n\
+          else {\n\
+            enable_form(false, \"*** Populate AP: HTTP Error code: \" + this.status);\n\
+          }\n\
+        }\n\
+      };\n\
+\n\
+      xhttp.open(\"GET\", \"/get_ap_list\", true);\n\
+      xhttp.send();\n\
+    }\n\
+\n\
+    function on_submit() {\n\
+      disable_form();\n\
+      spinner_on();\n\
+      let ssid = document.getElementById(\"ap-list\").value;\n\
+      let password = document.getElementById(\"password\").value;\n\
+      setAPCfg(ssid, password);\n\
     }\n\
 \n\
     function setAPCfg(ssid, password) {\n\
@@ -433,7 +404,7 @@ const char* main_html = "\
             restartQuery();\n\
           }\n\
           else {\n\
-            enable_form(false, \"set_ap_config_error\");\n\
+            enable_form(false, \"*** HTTP Error ***\");\n\
           }\n\
         }\n\
       };\n\
@@ -444,11 +415,19 @@ const char* main_html = "\
 \n\
     function restartQuery() {\n\
       if (retries++ > max_retries) {\n\
-        enable_form(false, \"set_ap_config error\");\n\
+        enable_form(false, \"*** HTTP Error ***\");\n\
       }\n\
       else {\n\
         window.setTimeout(queryAPCfg, 3000);\n\
       }\n\
+    }\n\
+\n\
+    function setStatus(ap) {\n\
+      var status = ap;\n\
+      if (ap === \"\") {\n\
+        status = \"*** Not connected ***\";\n\
+      }\n\
+      document.getElementById(\"status\").innerHTML = status;\n\
     }\n\
 \n\
     function queryAPCfg() {\n\
@@ -458,8 +437,13 @@ const char* main_html = "\
       xhttp.onreadystatechange = function () {\n\
         if (this.readyState == 4) {\n\
           if (this.status == 200) {\n\
-            let response = this.responseText;\n\
-            enable_form(true, response);\n\
+            setStatus(this.responseText);\n\
+            if (this.responseText != \"\") {\n\
+              enable_form(true);\n\
+            }\n\
+            else {\n\
+              enable_form(false, \"*** Authentication error ***\");\n\
+            }\n\
           }\n\
           else {\n\
             restartQuery();\n\
@@ -471,62 +455,63 @@ const char* main_html = "\
       xhttp.send();\n\
     }\n\
 \n\
+    function setBrightness(val) {\n\
+\n\
+      retries = 0;\n\
+      var xhttp = new XMLHttpRequest();\n\
+      xhttp.timeout = 5000;\n\
+\n\
+      xhttp.onreadystatechange = function () {\n\
+        if (this.readyState == 4) {\n\
+          if (this.status == 200) {\n\
+          }\n\
+        }\n\
+        // document.getElementById(\"brightness\").disabled = false;\n\
+      };\n\
+\n\
+      // document.getElementById(\"brightness\").disabled = true;\n\
+      xhttp.open(\"POST\", \"/set_brightness\", true);\n\
+      xhttp.send(val);\n\
+    }\n\
+\n\
     function closeModal(id) {\n\
       document.getElementById(id).style.display = \"none\";\n\
     }\n\
 \n\
-    function on_populate() {\n\
-\n\
-            disable_form();\n\
-            spinner_on();\n\
-\n\
-            var xhttp = new XMLHttpRequest();\n\
-            xhttp.timeout = retry_timeout;\n\
-            xhttp.onreadystatechange = function () {\n\
-              if (this.readyState == 4) {\n\
-                if (this.status == 200) {\n\
-                  initApList(this.responseText);\n\
-                  enable_form(true, \"\");\n\
-                }\n\
-                else {\n\
-                  enable_form(false, \"get_ap_list error\");\n\
-                }\n\
-                spinner_off();\n\
-              }\n\
-            };\n\
-      \n\
-            xhttp.open(\"GET\", \"/get_ap_list\", true);\n\
-            xhttp.send();\n\
-    }\n\
-\n\
-\n\
   </script>\n\
+\n\
 \n\
 </head>\n\
 \n\
 <body>\n\
 \n\
-  <div class=\"wrapper\">\n\
-    <div>\n\
-      <div style=\"text-align: center\">AP Configuration</div>\n\
-    </div>\n\
-    <div>\n\
-      <form id=\"main-form\">\n\
-        <button type=\"button\" class=\"button\" id=\"populate\" onClick=\"on_populate()\">Populate AP list</button>\n\
-        <label for=\"ap-list\">SSID:</label>\n\
-        <select name=\"ap-list\" id=\"ap-list\">\n\
-        </select>\n\
-        <label for=\"password\">Password:</label>\n\
-        <input type=\"text\" id=\"password\" name=\"password\" onkeyup=\"check_input()\">\n\
-        <button type=\"button\" class=\"button\" id=\"submit\" onClick=\"on_submit()\"  disabled>Submit</button>\n\
-      </form>\n\
-      Status: <label id=\"status\">???</label>\n\
-    </div>\n\
+  <div id=\"title\">\n\
+    <div style=\"text-align: center\">AP Configuration</div>\n\
+  </div>\n\
 \n\
+  <div id=\"form\">\n\
+    <button type=\"button\" class=\"form-button\" id=\"populate\" onClick=\"on_populate()\">Populate AP list</button>\n\
+    <select name=\"ap-list\" id=\"ap-list\">\n\
+    </select>\n\
+    <input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password:\" onkeyup=\"check_input()\">\n\
+    <button type=\"button\" class=\"form-button\" id=\"submit\" onClick=\"on_submit()\">Submit</button>\n\
   </div>\n\
-  <div>\n\
-    <hr class=\"rounded\">\n\
+  <div id=\"status-div\">\n\
+    <div id=\"connected-div\">\n\
+      Connected to:\n\
+      <label id=\"status\" style=\"font-weight: bold;\">Not connected</label>\n\
+    </div>\n\
+    <label id=\"error\" style=\"color:red;\"></label>\n\
   </div>\n\
+\n\
+  <hr style=\"padding: 0; margin: 0 0 0 10px;\">\n\
+\n\
+  <div id=\"brightness-div\">\n\
+    <label>Brightness:</label>\n\
+    <input type=\"range\" id=\"brightness\" name=\"brightness\" min=\"0\" max=\"10\" step=\"1\" style=\"height: 20px;\"\n\
+      oninput=\"setBrightness(this.value)\">\n\
+  </div>\n\
+\n\
 \n\
   <div class=\"overlay\" id=\"overlay-spinner\">\n\
     <div class='spinner' id=\"spinner\">\n\
@@ -544,27 +529,6 @@ const char* main_html = "\
       <div></div>\n\
     </div>\n\
   </div>\n\
-  \n\
-  <div class=\"overlay\" id=\"overlay-dialog-ok\">\n\
-    <div class=\"dialog-div\">\n\
-        <div class='dialog-circle' id=\"dialog-circle-ok\">\n\
-          <div>✓</div>\n\
-        </div>\n\
-        <div><text class=\"msg-text\">AP successfully configured.</text></div>\n\
-        <div class=\"button-grid\"><button class=\"dialog-button\" onclick=\"closeModal('overlay-dialog-ok')\">OK</button></div>\n\
-    </div>\n\
-  </div>\n\
-\n\
-  <div class=\"overlay\" id=\"overlay-dialog-error\">\n\
-    <div class=\"dialog-div\">\n\
-        <div class='dialog-circle' id=\"dialog-circle-error\">\n\
-          <div id=\"x\">✕</div>\n\
-        </div>\n\
-        <div><text class=\"msg-text\">Error configuring AP.</text></div>\n\
-        <div class=\"button-grid\"><button class=\"dialog-button\" onclick=\"closeModal('overlay-dialog-error')\">OK</button></div>\n\
-    </div>\n\
-  </div>\n\
-\n\
 \n\
 </body>\n\
 \n\

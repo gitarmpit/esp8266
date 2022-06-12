@@ -43,6 +43,14 @@ bool HttpServer::Init()
         return false;
     }
 
+    Esp8266::MODE mode = Esp8266::MODE::MODE_STATION_AP;
+    if (!_esp->SetMode(mode))
+    {
+        printf("SetMode error\n");
+        return false;
+    }
+
+    /*
     Esp8266::MODE mode = Esp8266::MODE::MODE_AP;
     char* ssid = _flashSettings->GetSsid();
     char* pass = _flashSettings->GetPassword();
@@ -72,6 +80,7 @@ bool HttpServer::Init()
             return false;
         }
     }
+    */
     
     if (!_esp->SetMux(true))
     {
@@ -207,9 +216,21 @@ void HttpServer::ProcessSetupAPConfing()
     apSetup.ParsePostRequest(_flashSettings);
 }
 
+void HttpServer::ProcessSetBrightness()
+{
+    if (_req.GetMethod() != HTTP_METHOD::POST || _req.GetContentLength() == 0)
+    {
+        Response400();
+    }
+
+    const char* body = &_buf[_eofHeaderPos];
+    fprintf(stderr, "Set brightness: %s\n", body);
+}
+
+
 void HttpServer::ProcessGetApList()
 {
-    char buf[1024] = { 0 };
+    char buf[2048] = { 0 };
     if (!_esp->GetListOfAps(buf, sizeof buf - 1))
     {
         Response500();
@@ -229,15 +250,11 @@ void HttpServer::GetSsid(char* buf)
     {
         strcpy(buf, ssid);
     }
-    else
-    {
-        strcpy(buf, "Not configured");
-    }
 }
 
 void HttpServer::QueryAPConfig()
 {
-    char body[32];
+    char body[32] = { 0 };
     GetSsid(body);
 
     int len = (int)strlen((char*)body);
@@ -249,13 +266,13 @@ void HttpServer::ServeMainPage(const char* body, const char* contentType)
 {
     int in_len = (int)strlen(body);
 
-    char apList[1024] = { 0 };
+    char apList[2048] = { 0 };
     _esp->GetListOfAps(apList, sizeof apList - 1);
 
-    char sid[32];
+    char sid[32] = { 0 };
     GetSsid(sid);
 
-    int malloc_len = in_len + strlen(sid) + strlen(apList) + 1;
+    int malloc_len = in_len + (int)strlen(sid) + (int)strlen(apList) + 1;
     char* buf = (char*)(malloc(malloc_len));
     memset(buf, 0, malloc_len);
     int j = 0;
@@ -331,7 +348,7 @@ void HttpServer::Response500(const char* error)
 
 bool HttpServer::ProcessRequest()
 {
-    if (!ReadHeaders(1000))
+    if (!ReadHeaders(100000))
     {
         return false;
     }
@@ -370,6 +387,11 @@ bool HttpServer::ProcessRequest()
             //check saved settings in FLASH, if ssid is set, return it 
             printf("process query_ap_config\n");
             QueryAPConfig();
+        }
+        else  if (strstr(_req.GetURI(), HTTP_EP_SET_BRIGHTNESS))
+        {
+            fprintf(stderr, "received set brightness req\n");
+            ProcessSetBrightness();
         }
         else
         {

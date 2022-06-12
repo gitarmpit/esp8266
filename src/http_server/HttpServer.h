@@ -15,7 +15,7 @@
 #define HTTP_EP_SET_AP_CONFIG    "/set_ap_config"
 #define HTTP_EP_QUERY_AP_CONFIG  "/query_ap_config"
 #define HTTP_EP_GET_AP_LIST      "/get_ap_list"
-
+#define HTTP_EP_SET_BRIGHTNESS   "/set_brightness"
 #define AP_LIST_TAG    "AP_LIST"
 #define AP_STATUS_TAG  "AP_STATUS"
 
@@ -43,6 +43,7 @@ private:
     void Response404();
     void Response500(const char* error = NULL);
     void ProcessSetupAPConfing();
+    void ProcessSetBrightness();
     void ProcessGetApList();
     void QueryAPConfig();
     void GetSsid(char* buf);

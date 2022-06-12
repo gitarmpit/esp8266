@@ -680,14 +680,14 @@ void Esp8266::Log(const char* format, ...)
 
 void Esp8266::_Log(const char* message)
 {
-    //fprintf(stderr, message);
+    fprintf(stderr, message);
 }
 
 bool Esp8266::GetListOfAps(char* buf, int buflen)
 {
     SendCommand(AT_CWLAP);
     bool rc = false;
-    if (Expect(AT_OK))
+    if (Expect(AT_OK, 10000))
     {
         int size = _databufPos - 6;
         if (size > 0 && size < buflen)

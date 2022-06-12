@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pc_http_srv", "pc_http_serv
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pc_http_srv_direct", "pc_http_server_direct\pc_http_srv_direct.vcxproj", "{4D47271F-C237-4095-9D70-C4BB2D2164DA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "STM32_SerialTest", "STM32_SerialTest\STM32_SerialTest.vcxproj", "{CC52314E-E731-49D5-A7F0-3B62A659EB63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -52,13 +54,21 @@ Global
 		{4D47271F-C237-4095-9D70-C4BB2D2164DA}.Release|x64.ActiveCfg = Release|Win32
 		{4D47271F-C237-4095-9D70-C4BB2D2164DA}.Release|x86.ActiveCfg = Release|Win32
 		{4D47271F-C237-4095-9D70-C4BB2D2164DA}.Release|x86.Build.0 = Release|Win32
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Debug|x64.ActiveCfg = Debug|x64
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Debug|x64.Build.0 = Debug|x64
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Debug|x86.ActiveCfg = Debug|Win32
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Debug|x86.Build.0 = Debug|Win32
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Release|x64.ActiveCfg = Release|x64
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Release|x64.Build.0 = Release|x64
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Release|x86.ActiveCfg = Release|Win32
+		{CC52314E-E731-49D5-A7F0-3B62A659EB63}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		        SolutionGuid = {58FC8ADB-5E7D-4A92-B808-6FA3C81B5DCF}
-		                SolutionGuid = {1A625122-9EDE-46AB-9F23-F59212143980}
 		SolutionGuid = {2A293F93-777F-4E8E-A1F9-D493B6B2EE59}
+		                SolutionGuid = {1A625122-9EDE-46AB-9F23-F59212143980}
+		        SolutionGuid = {58FC8ADB-5E7D-4A92-B808-6FA3C81B5DCF}
 	EndGlobalSection
 EndGlobal

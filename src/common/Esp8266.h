@@ -34,7 +34,7 @@
 #define WIFI_GOT_IP    "WIFI GOT IP\r\n"
 #define CWJAP_CUR_PATTERN "+CWJAP_CUR:\""
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 class Esp8266_Base
 {
