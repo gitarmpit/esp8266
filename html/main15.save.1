@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <style>
+  #title {
+    max-width: 300px; 
+    border: none;
+    background-color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 0.5em 1em ;
+    color: #335b71;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+
+  #form {
+    display: grid;
+    grid-template-columns: auto;
+    grid-auto-rows: 1fr;
+    max-width: 300px; 
+    row-gap: 1em;
+    padding: 1em;
+
+    border: none;
+    background-color: white;
+    text-align: center;
+  }
+
+
+  button {
+    background:linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);
+    background-color:#7892c2;
+    border-radius:22px;
+    border:1px solid #4e6096;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:Arial;
+    font-size:17px;
+    padding:16px 41px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #283966;
+  }
+
+
+  select { 
+      color: #335b71;
+      text-decoration: none;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      text-align: center;
+      padding: 5px;
+      line-height: 30px;
+      border-radius: 20px;
+      box-shadow: 0 2px 2px #888888;
+      outline: none;
+  }
+
+  input {
+      color: #335b71;
+      text-decoration: none;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      padding: 0px;
+      border: none;
+      border-bottom: 1px solid #335b71;
+      background: transparent; 
+      height: 20px;
+      border-radius: 0;
+  }
+
+
+  input:focus{
+    outline: none;
+  }
+
+  </style>
+
+</head>
+
+<body>
+<div id="title">
+  <div style="text-align: center">AP Configuration</div>
+</div>
+
+
+<div id="form">
+    <button type="button" class="form-button" id="populate" onClick="on_populate()">Populate AP list</button>
+    <select name="ap-list" id="ap-list">
+    </select>
+    <input type="password" id="password" name="password" placeholder="Password:"onkeyup="check_input()">
+    <button type="button" class="form-button" id="submit" onClick="on_submit()">Submit</button>
+    <div id="status-div">
+     <label id="status">Status</label>
+     <label id="status">Error: none</label>
+    </div>
+</div>
+
+
+
+</body>
+
+</html>

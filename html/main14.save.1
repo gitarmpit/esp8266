@@ -21,7 +21,7 @@
     grid-template-columns: auto;
     grid-auto-rows: 1fr;
     max-width: 300px; 
-    row-gap: 2em;
+    row-gap: 1em;
     padding: 1em;
 
     border: 1px solid #335b71;
@@ -31,28 +31,22 @@
     text-align: center;
   }
 
-  #status-div {
-    display: grid;
-    row-gap: 1em;
-  }
-
-  #password {
-    border-radius: 0;
-  } 
 
   button {
-    background:linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);
-    background-color:#7892c2;
-    border-radius:22px;
-    border:1px solid #4e6096;
-    display:inline-block;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:Arial;
-    font-size:17px;
-    padding:16px 41px;
-    text-decoration:none;
-    text-shadow:0px 1px 0px #283966;
+      color: white;
+      text-decoration: none;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      text-align: center;
+      padding: 5px;
+      line-height: 30px;
+      display: inline-block;
+      position: relative;
+      border-radius: 20px;
+      background-image: linear-gradient(#335b71 45%, #03324c 55%);
+      box-shadow: 0 2px 2px #888888;
+      transition: color 0.3s, background-image 0.5s, ease-in-out;
+      outline: none;
   }
 
   select { 
@@ -257,17 +251,8 @@
 
     window.onload = function(){
       initApList(g_apList);
-      setStatus(apStatus);
+      document.getElementById("status").innerHTML = apStatus;
     };
-
-    function setStatus(status) {
-      var msg = "Not connected";
-      if (status !== "") {
-        msg = "Connected to: " + status;
-      }
-      document.getElementById("status").innerHTML = msg;
-    }
-
 
     function apEntry(ssid, db) 
     {
@@ -399,13 +384,6 @@
         if (this.readyState == 4) {
           if (this.status == 200) {
             let response = this.responseText;
-            if (response === "") {
-               response = "Not connected";
-            }
-            else 
-            {
-               response = "Connected to: " + response;
-            }
             enable_form(true, response);
           }
           else {
@@ -462,12 +440,9 @@
     <button type="button" class="form-button" id="populate" onClick="on_populate()">Populate AP list</button>
     <select name="ap-list" id="ap-list">
     </select>
-    <input type="password" id="password" name="password" placeholder="Password:"onkeyup="check_input()">
+    <input type="password" id="password" name="password" onkeyup="check_input()">
     <button type="button" class="form-button" id="submit" onClick="on_submit()">Submit</button>
-    <div id="status-div">
-     <label id="status">Status</label>
-     <label id="status">Error: none</label>
-    </div>
+    Status: <label id="status">???</label>
 </div>
 
 

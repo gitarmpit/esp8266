@@ -3,59 +3,81 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  
+
   <style>
-  #title {
-    max-width: 300px; 
-    /*min-height: 200px;*/ 
-    border: 1px solid #335b71;
-    background-color: #88a2af;
-    border-radius: 10px 10px 0 0;
-    padding: 0.5em 1em ;
-    color: white;
-    font-family: Helvetica, Arial, sans-serif;
-  }
+    #title {
+      max-width: 300px;
+      border: none;
+      background-color: white;
+      border-radius: 10px 10px 0 0;
+      padding: 0.5em 1em;
+      color: #335b71;
+      font-family: Helvetica, Arial, sans-serif;
+    }
 
-  #form {
-    display: grid;
-    grid-template-columns: auto;
-    grid-auto-rows: 1fr;
-    max-width: 300px; 
-    row-gap: 2em;
-    padding: 1em;
+    #form {
+      display: grid;
+      grid-template-columns: auto;
+      grid-auto-rows: 1fr;
+      max-width: 300px;
+      row-gap: 10px;
+      padding: 10px;
 
-    border: 1px solid #335b71;
-    border-top: none;
-    background-color: white;
-    border-radius: 0 0 10px 10px;
-    text-align: center;
-  }
+      border: none;
+      background-color: white;
+      text-align: center;
+    }
 
-  #status-div {
-    display: grid;
-    row-gap: 1em;
-  }
+    #status-div {
+      display: grid;
+      grid-template-columns: auto;
+      grid-auto-rows: 1fr;
+      max-width: 300px;
+      row-gap: 10px;
+      padding: 10px;
+      border: none;
+      text-align: left;
+    }
 
-  #password {
-    border-radius: 0;
-  } 
+    #connected-div {
+      display: grid;
+      grid-template-columns: auto;
+      grid-auto-rows: 1fr;
+      max-width: 300px;
+      row-gap: 0em;
+      padding: 0em;
+      border: none;
+      text-align: left;
+    }
 
-  button {
-    background:linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);
-    background-color:#7892c2;
-    border-radius:22px;
-    border:1px solid #4e6096;
-    display:inline-block;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:Arial;
-    font-size:17px;
-    padding:16px 41px;
-    text-decoration:none;
-    text-shadow:0px 1px 0px #283966;
-  }
+    #brightness-div {
+      display: grid;
+      grid-template-columns: auto;
+      grid-auto-rows: 1fr;
+      max-width: 300px;
+      row-gap: 0em;
+      padding: 0em;
+      border: none;
+      padding: 0px 0px 0px 10px;
+      text-align: left;
+    }
 
-  select { 
+    button {
+      background: linear-gradient(to bottom, #7892c2 5%, #476e9e 100%);
+      background-color: #7892c2;
+      border-radius: 22px;
+      border: 1px solid #4e6096;
+      display: inline-block;
+      cursor: pointer;
+      color: #ffffff;
+      font-family: Arial;
+      font-size: 17px;
+      padding: 16px 41px;
+      text-decoration: none;
+      text-shadow: 0px 1px 0px #283966;
+    }
+
+    select {
       color: #335b71;
       text-decoration: none;
       font-family: Helvetica, Arial, sans-serif;
@@ -66,9 +88,9 @@
       border-radius: 20px;
       box-shadow: 0 2px 2px #888888;
       outline: none;
-  }
+    }
 
-  input {
+    input {
       color: #335b71;
       text-decoration: none;
       font-family: Helvetica, Arial, sans-serif;
@@ -76,15 +98,14 @@
       padding: 0px;
       border: none;
       border-bottom: 1px solid #335b71;
-      background: transparent; 
-      height: 20px;
-  }
+      background: transparent;
+      height: 40px;
+      border-radius: 0;
+    }
 
-
-  input:focus{
-    outline: none;
-  }
-
+    input:focus {
+      outline: none;
+    }
 
     /*****************************/
     .overlay {
@@ -100,6 +121,7 @@
       z-index: 2;
       cursor: pointer;
     }
+
     .spinner {
       position: absolute;
       top: 50%;
@@ -222,7 +244,6 @@
       transform: rotate(330deg);
     }
 
-
     @-webkit-keyframes spinner-fade {
       0% {
         /*background-color: #69717d;*/
@@ -244,7 +265,6 @@
         background-color: transparent;
       }
     }
-
   </style>
 
   <script>
@@ -255,59 +275,47 @@
 
     var apStatus = "$AP_STATUS$";
 
-    window.onload = function(){
+    window.onload = function () {
       initApList(g_apList);
       setStatus(apStatus);
+      spinner_off();
     };
 
-    function setStatus(status) {
-      var msg = "Not connected";
-      if (status !== "") {
-        msg = "Connected to: " + status;
-      }
-      document.getElementById("status").innerHTML = msg;
+    function apEntry(ssid, db) {
+      this.ssid = ssid;
+      this.db = db;
     }
 
-
-    function apEntry(ssid, db) 
-    {
-        this.ssid = ssid;
-        this.db = db;
-    }
-
-    function initApList(apList) 
-    {
+    function initApList(apList) {
       var selectList = document.getElementById("ap-list");
 
-      if (selectList != null)  {
+      if (selectList != null) {
         selectList.innerText = null;
-        
+
         var lines = apList.split("\n");
-        
+
         var apArray = new Array();
         var maxLen = 0;
-        for (var l of lines) 
-        {
+        for (var l of lines) {
           if (l.length > 0) {
             var fields = l.split(",");
             var ssid = fields[1].replace(/"/g, '');
             if (ssid.length > maxLen) {
-               maxLen = ssid.length;
+              maxLen = ssid.length;
             }
             var db = fields[2];
-            apArray.push(new apEntry(ssid, db));  
+            apArray.push(new apEntry(ssid, db));
           }
         }
         apArray = apArray.sort((e1, e2) => e2.db - e1.db);
-        for (var e of apArray) 
-        {
-            var val = e.ssid;
-            var option = document.createElement("option");
-            option.value = val;
-            option.text = val;
-            selectList.appendChild(option);
+        for (var e of apArray) {
+          var val = e.ssid;
+          var option = document.createElement("option");
+          option.value = val;
+          option.text = val;
+          selectList.appendChild(option);
         }
-      }   
+      }
     }
 
     function check_input() {
@@ -327,21 +335,13 @@
       document.getElementById("overlay-spinner").style.display = "none";
     }
 
-    function on_submit() {
-      disable_form();
-      spinner_on();
-      let ssid = document.getElementById("ap-list").value;
-      let password = document.getElementById("password").value;
-      setAPCfg(ssid, password);
-    }
-
     function disable_form() {
       document.getElementById("submit").disabled = true;
       document.getElementById("ap-list").disabled = true;
       document.getElementById("password").disabled = true;
-    } 
+    }
 
-    function enable_form(is_success, msg) {
+    function enable_form(is_success, error_msg) {
       spinner_off();
       document.getElementById("ap-list").disabled = false;
       document.getElementById("password").disabled = false;
@@ -349,16 +349,44 @@
       if (is_success) {
         document.getElementById("password").value = "";
         document.getElementById("submit").disabled = true;
-      }
+       document.getElementById("error").innerHTML = "";
+     }
       else {
         document.getElementById("submit").disabled = false;
+        document.getElementById("error").innerHTML = error_msg;
       }
 
-      if (msg.length > 0) 
-      {
-        document.getElementById("status").innerHTML = msg;
-      }
+    }
 
+    function on_populate() {
+
+      disable_form();
+      spinner_on();
+
+      var xhttp = new XMLHttpRequest();
+      xhttp.timeout = retry_timeout;
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            initApList(this.responseText);
+            enable_form(true);
+          }
+          else {
+            enable_form(false, "*** HTTP Error ***");
+          }
+        }
+      };
+
+      xhttp.open("GET", "/get_ap_list", true);
+      xhttp.send();
+    }
+    
+    function on_submit() {
+      disable_form();
+      spinner_on();
+      let ssid = document.getElementById("ap-list").value;
+      let password = document.getElementById("password").value;
+      setAPCfg(ssid, password);
     }
 
     function setAPCfg(ssid, password) {
@@ -373,7 +401,7 @@
             restartQuery();
           }
           else {
-            enable_form(false, "set_ap_config_error");
+            enable_form(false, "*** HTTP Error ***");
           }
         }
       };
@@ -384,11 +412,20 @@
 
     function restartQuery() {
       if (retries++ > max_retries) {
-        enable_form(false, "set_ap_config error");
+        enable_form(false, "*** HTTP Error ***");
       }
       else {
         window.setTimeout(queryAPCfg, 3000);
       }
+    }
+
+    function setStatus(ap)
+    {
+      var status = ap; 
+      if (ap === "") {
+        status = "*** Not connected ***";
+      }
+      document.getElementById("status").innerHTML = status;
     }
 
     function queryAPCfg() {
@@ -398,15 +435,13 @@
       xhttp.onreadystatechange = function () {
         if (this.readyState == 4) {
           if (this.status == 200) {
-            let response = this.responseText;
-            if (response === "") {
-               response = "Not connected";
+            setStatus(this.responseText);
+            if (this.responseText != "") {
+              enable_form(true);
             }
-            else 
-            {
-               response = "Connected to: " + response;
+            else {
+              enable_form(false, "*** Authentication error ***");
             }
-            enable_form(true, response);
           }
           else {
             restartQuery();
@@ -422,31 +457,6 @@
       document.getElementById(id).style.display = "none";
     }
 
-    function on_populate() {
-
-            disable_form();
-            spinner_on();
-
-            var xhttp = new XMLHttpRequest();
-            xhttp.timeout = retry_timeout;
-            xhttp.onreadystatechange = function () {
-              if (this.readyState == 4) {
-                if (this.status == 200) {
-                  initApList(this.responseText);
-                  enable_form(true, "");
-                }
-                else {
-                  enable_form(false, "get_ap_list error");
-                }
-                spinner_off();
-              }
-            };
-      
-            xhttp.open("GET", "/get_ap_list", true);
-            xhttp.send();
-    }
-
-
   </script>
 
 
@@ -454,24 +464,34 @@
 
 <body>
 
-<div id="title">
-  <div style="text-align: center">AP Configuration</div>
-</div>
+  <div id="title">
+    <div style="text-align: center">AP Configuration</div>
+  </div>
 
-<div id="form">
+  <div id="form">
     <button type="button" class="form-button" id="populate" onClick="on_populate()">Populate AP list</button>
     <select name="ap-list" id="ap-list">
     </select>
-    <input type="password" id="password" name="password" placeholder="Password:"onkeyup="check_input()">
+    <input type="password" id="password" name="password" placeholder="Password:" onkeyup="check_input()">
     <button type="button" class="form-button" id="submit" onClick="on_submit()">Submit</button>
-    <div id="status-div">
-     <label id="status">Status</label>
-     <label id="status">Error: none</label>
+  </div>
+  <div id="status-div">
+    <div id="connected-div">
+      Connected to: 
+      <label id="status" style="font-weight: bold;">Not connected</label>
     </div>
-</div>
+    <label id="error" style="color:red;">Error</label>
+  </div>
 
+  <hr style="padding: 0; margin: 0;">
 
-<div class="overlay" id="overlay-spinner">
+  <div id="brightness-div">
+    <label for="brightness" style="height: 20px;">Brightness:</label>
+    <input type="range" id="brightness" name="brightness" min="0" max="100" step="1" oninput="loadDoc(this.value)">
+  </div>
+    
+
+  <div class="overlay" id="overlay-spinner">
     <div class='spinner' id="spinner">
       <div></div>
       <div></div>
@@ -486,7 +506,7 @@
       <div></div>
       <div></div>
     </div>
-</div>
+  </div>
 
 </body>
 

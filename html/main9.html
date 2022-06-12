@@ -321,50 +321,46 @@
 
     var apStatus = "$AP_STATUS$";
 
-    window.onload = function(){
+    window.onload = function () {
       initApList(g_apList);
       document.getElementById("status").innerHTML = apStatus;
     };
 
-    function apEntry(ssid, db) 
-    {
-        this.ssid = ssid;
-        this.db = db;
+    function apEntry(ssid, db) {
+      this.ssid = ssid;
+      this.db = db;
     }
 
-    function initApList(apList) 
-    {
+    function initApList(apList) {
       var selectList = document.getElementById("ap-list");
 
-      if (selectList != null)  {
+      if (selectList != null) {
         selectList.innerText = null;
-        
+
         var lines = apList.split("\n");
-        
+
         var apArray = new Array();
         var maxLen = 0;
-        for (var l of lines) 
-        {
+        for (var l of lines) {
           if (l.length > 0) {
             var fields = l.split(",");
             var ssid = fields[1].replace(/"/g, '');
             if (ssid.length > maxLen) {
-               maxLen = ssid.length;
+              maxLen = ssid.length;
             }
             var db = fields[2];
-            apArray.push(new apEntry(ssid, db));  
+            apArray.push(new apEntry(ssid, db));
           }
         }
         apArray = apArray.sort((e1, e2) => e2.db - e1.db);
-        for (var e of apArray) 
-        {
-            var val = e.ssid;
-            var option = document.createElement("option");
-            option.value = val;
-            option.text = val;
-            selectList.appendChild(option);
+        for (var e of apArray) {
+          var val = e.ssid;
+          var option = document.createElement("option");
+          option.value = val;
+          option.text = val;
+          selectList.appendChild(option);
         }
-      }   
+      }
     }
 
     function check_input() {
@@ -396,7 +392,7 @@
       document.getElementById("submit").disabled = true;
       document.getElementById("ap-list").disabled = true;
       document.getElementById("password").disabled = true;
-    } 
+    }
 
     function enable_form(is_success, msg) {
       spinner_off();
@@ -411,8 +407,7 @@
         document.getElementById("submit").disabled = false;
       }
 
-      if (msg.length > 0) 
-      {
+      if (msg.length > 0) {
         document.getElementById("status").innerHTML = msg;
       }
 
@@ -474,26 +469,26 @@
 
     function on_populate() {
 
-            disable_form();
-            spinner_on();
+      disable_form();
+      spinner_on();
 
-            var xhttp = new XMLHttpRequest();
-            xhttp.timeout = retry_timeout;
-            xhttp.onreadystatechange = function () {
-              if (this.readyState == 4) {
-                if (this.status == 200) {
-                  initApList(this.responseText);
-                  enable_form(true, "");
-                }
-                else {
-                  enable_form(false, "get_ap_list error");
-                }
-                spinner_off();
-              }
-            };
-      
-            xhttp.open("GET", "/get_ap_list", true);
-            xhttp.send();
+      var xhttp = new XMLHttpRequest();
+      xhttp.timeout = retry_timeout;
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            initApList(this.responseText);
+            enable_form(true, "");
+          }
+          else {
+            enable_form(false, "get_ap_list error");
+          }
+          spinner_off();
+        }
+      };
+
+      xhttp.open("GET", "/get_ap_list", true);
+      xhttp.send();
     }
 
 
@@ -515,7 +510,7 @@
         </select>
         <label for="password">Password:</label>
         <input type="text" id="password" name="password" onkeyup="check_input()">
-        <button type="button" class="button" id="submit" onClick="on_submit()"  disabled>Submit</button>
+        <button type="button" class="button" id="submit" onClick="on_submit()" disabled>Submit</button>
       </form>
       Status: <label id="status">???</label>
     </div>
@@ -541,24 +536,25 @@
       <div></div>
     </div>
   </div>
-  
+
   <div class="overlay" id="overlay-dialog-ok">
     <div class="dialog-div">
-        <div class='dialog-circle' id="dialog-circle-ok">
-          <div>✓</div>
-        </div>
-        <div><text class="msg-text">AP successfully configured.</text></div>
-        <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-ok')">OK</button></div>
+      <div class='dialog-circle' id="dialog-circle-ok">
+        <div>✓</div>
+      </div>
+      <div><text class="msg-text">AP successfully configured.</text></div>
+      <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-ok')">OK</button></div>
     </div>
   </div>
 
   <div class="overlay" id="overlay-dialog-error">
     <div class="dialog-div">
-        <div class='dialog-circle' id="dialog-circle-error">
-          <div id="x">✕</div>
-        </div>
-        <div><text class="msg-text">Error configuring AP.</text></div>
-        <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-error')">OK</button></div>
+      <div class='dialog-circle' id="dialog-circle-error">
+        <div id="x">✕</div>
+      </div>
+      <div><text class="msg-text">Error configuring AP.</text></div>
+      <div class="button-grid"><button class="dialog-button" onclick="closeModal('overlay-dialog-error')">OK</button>
+      </div>
     </div>
   </div>
 

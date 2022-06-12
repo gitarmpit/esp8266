@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="spinner2.css">
+<style>
+</style>
+</head>
+
+<html>
+<body>
+
+
+<div id="demo">
+<h1>The XMLHttpRequest Object</h1>
+<label id="label">Before ajax call</label>
+<button type="button" id="submit" width="500" onclick="loadDoc('ok')">Change Content</button>
+</div>
+
+<div style="width:500px">
+  <input type="range" id="brightness" name="brightness" min="0" max="100" step="1" style="width:400px" oninput="loadDoc(this.value)">
+  <label for="brightness">Brightness</label>
+</div>
+
+<div class="loader" id="loader" disabled></div>
+
+<script>
+let cnt=0;
+function loadDoc(val) {
+
+  document.getElementById("submit").disabled = true;
+  document.getElementById("loader").style.display = "block";
+  var xhttp = new XMLHttpRequest();
+  xhttp.timeout = 3000;
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      document.getElementById("submit").disabled = false;
+      //document.getElementById("loader").style.display = "none";
+      if (this.status == 200) {
+       document.getElementById("label").innerHTML = this.responseText;
+      }
+    }
+  };
+
+  xhttp.onerror = function() {
+      console.log("error");
+      document.getElementById("submit").disabled = false;
+      //document.getElementById("loader").style.display = "none";
+  }
+
+
+  // console.log(val);
+  //console.log("val=" + val + ", cnt=" + cnt);
+  xhttp.open("POST", "/ajax_info.txt", true);
+  xhttp.send("val=" + val + "&cnt=" + cnt++);
+}
+</script>
+
+</body>
+</html>
