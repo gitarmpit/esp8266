@@ -38,7 +38,8 @@ struct connection_entry
 };
 
 // Raw winsock
-// For Direct Http server, no Esp8266 layer
+// For Direct Http server, no Esp8266 chip
+// Used for testing HTTP server and AT commands
 class WinSockIo : public Serial
 {
 public:
@@ -78,7 +79,7 @@ private:
 
 };
 
-//Wrapper around WinSockIo, implements Esp8266 commands
+//Wrapper around WinSockIo, implements Esp8266 commands: simulates AT protocol
 //Esp8266 calls this layer in Http Server running on PC without chip connected
 class WinSock_Esp8266 : public WinSockIo
 {

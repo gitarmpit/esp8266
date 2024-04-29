@@ -1,3 +1,10 @@
+// Implements ESP8266 AT protocol processing
+// Commands are sent/received over Serial which is an abstract class
+// Serial implementing classes: 
+// - WinSock to test on PC without ESP8266 attached 
+// - FT232  to test on PC with ESP8266 attached via FT232 
+// - UART on uC 
+
 #pragma once 
 #include "Serial.h"
 #include "Timer.h"

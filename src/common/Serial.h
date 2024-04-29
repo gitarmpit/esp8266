@@ -3,6 +3,9 @@
 
 #define UNUSED(x) (void)(x)
 
+// Base interfaces 
+// Implementing classes: FT232 or WinSock on PC, UART on uC 
+
 class Serial 
 {
 public:
